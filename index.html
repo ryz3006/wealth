@@ -3,12 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprehensive Wealth Planner</title>
+
+    <!-- SEO Meta Tags -->
+    <title>Comprehensive Financial Planner | EMI, Budget, Net Worth & Loan Calculator</title>
+    <meta name="description" content="A free, all-in-one financial planner to track your net worth, analyze loans with an EMI calculator, manage your 50-30-20 budget, and plan for retirement. Now with Google Drive sync.">
+    <meta name="keywords" content="financial planner, wealth planner, loan calculator, emi calculator, net worth tracker, budget tool, 50-30-20 rule, retirement planning, investment simulator, home loan affordability, personal finance dashboard, financial health score, google drive sync">
+    <meta name="author" content="Comprehensive Wealth Planner">
+    <link rel="canonical" href="https://ryz3006.github.io/wealth/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ryz3006.github.io/wealth/">
+    <meta property="og:title" content="Comprehensive Financial Planner | EMI, Budget, Net Worth & Loan Calculator">
+    <meta property="og:description" content="A free, all-in-one financial planner to track your net worth, analyze loans, manage your budget, and plan for retirement.">
+    <meta property="og:image" content="https://placehold.co/1200x630/e0e7ff/3730a3?text=Wealth+Planner">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ryz3006.github.io/wealth/">
+    <meta property="twitter:title" content="Comprehensive Financial Planner | EMI, Budget, Net Worth & Loan Calculator">
+    <meta property="twitter:description" content="A free, all-in-one financial planner to track your net worth, analyze loans, manage your budget, and plan for retirement.">
+    <meta property="twitter:image" content="https://placehold.co/1200x630/e0e7ff/3730a3?text=Wealth+Planner">
+
+    <!-- Schema.org Markup for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Comprehensive Wealth Planner",
+      "description": "An all-in-one financial planning tool with an EMI calculator, budget manager, net worth tracker, and retirement planner.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -26,7 +70,7 @@
         .input-group label { display: block; color: #4b5563; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
         .input-group input, .input-group select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; transition: border-color 0.2s, box-shadow 0.2s; }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
-        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; border: none; text-align: center; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-align: center; }
         .btn-primary { background-color: #3b82f6; color: white; }
         .btn-primary:hover:not(:disabled) { background-color: #2563eb; }
         .btn-secondary { background-color: #6b7280; color: white; }
@@ -51,13 +95,23 @@
 <body class="p-4 sm:p-6 lg:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
+        <header class="mb-4 text-center">
+             <div class="flex justify-between items-center">
+                <div></div> <!-- Spacer -->
+                <h1 class="text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
+                <div id="auth-container">
+                    <button id="loginBtn" class="btn btn-primary">Login with Google</button>
+                    <div id="user-info" class="hidden items-center space-x-3">
+                        <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                        <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">Logout</button>
+                    </div>
+                </div>
+            </div>
             <p class="text-lg text-gray-600 mt-2">Your all-in-one dashboard for financial health, analysis, and growth.</p>
         </header>
 
         <!-- Navigation -->
-        <div class="flex space-x-2 border-b">
+        <div class="flex flex-wrap space-x-2 border-b">
             <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
             <button class="nav-tab" onclick="showTab('inputs')">Financial Inputs</button>
             <button class="nav-tab" onclick="showTab('loans')">Loan Planner</button>
@@ -69,6 +123,8 @@
              <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-gray-700">Financial Health Dashboard</h2>
                 <div class="flex space-x-2">
+                    <button id="loadDataBtn" class="btn btn-secondary hidden">Load Data</button>
+                    <button id="saveDataBtn" class="btn btn-secondary hidden">Save Data</button>
                     <button id="refreshDashboardBtn" class="btn btn-secondary">Refresh</button>
                     <button id="downloadPdfBtn" class="btn btn-primary">Download Wealth Report</button>
                 </div>
@@ -120,6 +176,23 @@
         let activeAnalysisIndex = -1;
         let budgetChart, wealthGrowthChart;
         let currentAmortizationSchedule = [];
+        let db;
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPFwbue19VG1qu8XnsI0aqNWGsJgZAqWI",
+            authDomain: "wealth-planner-app-e3274.firebaseapp.com",
+            projectId: "wealth-planner-app-e3274",
+            storageBucket: "wealth-planner-app-e3274.appspot.com",
+            messagingSenderId: "600542647882",
+            appId: "1:600542647882:web:f348cb568b900139d078b3",
+            measurementId: "G-1KH7RMR8QG"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        db = firebase.firestore();
 
         // --- DOM ELEMENTS ---
         const currentAgeInput = document.getElementById('currentAge');
@@ -268,65 +341,135 @@
         document.getElementById('refreshDashboardBtn').addEventListener('click', updateDashboard);
 
         // --- CALCULATOR EVENT LISTENERS ---
-        document.getElementById('emiCalcForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const p = parseFloat(document.getElementById('emiLoanAmount').value);
-            const r = parseFloat(document.getElementById('emiInterestRate').value) / 12 / 100;
-            const n = parseFloat(document.getElementById('emiTenure').value) * 12;
-            const emi = p * r * (Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-            const resultEl = document.getElementById('emiResult');
-            resultEl.innerHTML = `<div class="label">Your Monthly EMI</div><div class="value">${formatCurrency(emi)}</div>`;
-            resultEl.classList.remove('hidden');
-        });
-        document.getElementById('haForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const income = parseFloat(document.getElementById('haMonthlyIncome').value);
-            const existingEmi = parseFloat(document.getElementById('haExistingEmi').value);
-            const tenure = parseFloat(document.getElementById('haTenure').value) * 12;
-            const rate = parseFloat(document.getElementById('haInterestRate').value) / 12 / 100;
+        document.getElementById('emiCalcForm').addEventListener('submit', e => { e.preventDefault(); const p = parseFloat(document.getElementById('emiLoanAmount').value); const r = parseFloat(document.getElementById('emiInterestRate').value) / 12 / 100; const n = parseFloat(document.getElementById('emiTenure').value) * 12; const emi = p * r * (Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1); const resultEl = document.getElementById('emiResult'); resultEl.innerHTML = `<div class="label">Your Monthly EMI</div><div class="value">${formatCurrency(emi)}</div>`; resultEl.classList.remove('hidden'); });
+        document.getElementById('haForm').addEventListener('submit', e => { e.preventDefault(); const income = parseFloat(document.getElementById('haMonthlyIncome').value); const existingEmi = parseFloat(document.getElementById('haExistingEmi').value); const tenure = parseFloat(document.getElementById('haTenure').value) * 12; const rate = parseFloat(document.getElementById('haInterestRate').value) / 12 / 100; const maxEmi = (income * 0.45) - existingEmi; if (maxEmi <= 0) { alert('Your existing EMIs are too high to afford a new home loan.'); return; } const loanAmount = (maxEmi / (rate * Math.pow(1 + rate, tenure))) * (Math.pow(1 + rate, tenure) - 1); const propertyValue = loanAmount / 0.8; const resultEl = document.getElementById('haResult'); resultEl.innerHTML = `<div class="calc-result mb-2"><div class="label">Affordable Home Loan</div><div class="value">${formatLargeCurrency(loanAmount)}</div></div><div class="calc-result"><div class="label">Estimated Property Value</div><div class="value">${formatLargeCurrency(propertyValue)}</div></div>`; resultEl.classList.remove('hidden'); });
+        document.getElementById('sipForm').addEventListener('submit', e => { e.preventDefault(); const p = parseFloat(document.getElementById('sipAmount').value); const r = parseFloat(document.getElementById('sipReturnRate').value) / 100; const t = parseFloat(document.getElementById('sipDuration').value); const n = 12; const i = r / n; const N = n * t; const futureValue = p * ((Math.pow(1 + i, N) - 1) / i) * (1 + i); const totalInvested = p * N; const wealthGained = futureValue - totalInvested; const resultEl = document.getElementById('sipResult'); resultEl.innerHTML = `<div class="calc-result mb-2"><div class="label">Total Invested</div><div class="value">${formatLargeCurrency(totalInvested)}</div></div><div class="calc-result mb-2"><div class="label">Wealth Gained</div><div class="value">${formatLargeCurrency(wealthGained)}</div></div><div class="calc-result bg-indigo-200"><div class="label">Total Corpus</div><div class="value">${formatLargeCurrency(futureValue)}</div></div>`; resultEl.classList.remove('hidden'); });
 
-            const maxEmi = (income * 0.45) - existingEmi; // Cap at 45% DTI
-            if (maxEmi <= 0) {
-                 alert('Your existing EMIs are too high to afford a new home loan.');
-                 return;
-            }
-            const loanAmount = (maxEmi / (rate * Math.pow(1 + rate, tenure))) * (Math.pow(1 + rate, tenure) - 1);
-            const propertyValue = loanAmount / 0.8; // Assuming 80% LTV
+        // --- AUTHENTICATION LOGIC ---
+        function handleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                console.error("Authentication Error:", error);
+                alert("Could not log in. Please try again.");
+            });
+        }
 
-            const resultEl = document.getElementById('haResult');
-            resultEl.innerHTML = `
-                <div class="calc-result mb-2"><div class="label">Affordable Home Loan</div><div class="value">${formatLargeCurrency(loanAmount)}</div></div>
-                <div class="calc-result"><div class="label">Estimated Property Value</div><div class="value">${formatLargeCurrency(propertyValue)}</div></div>
-            `;
-            resultEl.classList.remove('hidden');
-        });
-        document.getElementById('sipForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const p = parseFloat(document.getElementById('sipAmount').value);
-            const r = parseFloat(document.getElementById('sipReturnRate').value) / 100;
-            const t = parseFloat(document.getElementById('sipDuration').value);
-            const n = 12; // Compounded monthly
+        function handleLogout() {
+            auth.signOut();
+        }
 
-            const i = r / n;
-            const N = n * t;
-            const futureValue = p * ((Math.pow(1 + i, N) - 1) / i) * (1 + i);
-            const totalInvested = p * N;
-            const wealthGained = futureValue - totalInvested;
+        function updateUIForUser(user) {
+            const loginBtn = document.getElementById('loginBtn');
+            const userInfo = document.getElementById('user-info');
+            const userNameEl = document.getElementById('userName');
+            const saveDataBtn = document.getElementById('saveDataBtn');
+            const loadDataBtn = document.getElementById('loadDataBtn');
             
-            const resultEl = document.getElementById('sipResult');
-            resultEl.innerHTML = `
-                 <div class="calc-result mb-2"><div class="label">Total Invested</div><div class="value">${formatLargeCurrency(totalInvested)}</div></div>
-                 <div class="calc-result mb-2"><div class="label">Wealth Gained</div><div class="value">${formatLargeCurrency(wealthGained)}</div></div>
-                 <div class="calc-result bg-indigo-200"><div class="label">Total Corpus</div><div class="value">${formatLargeCurrency(futureValue)}</div></div>
-            `;
-             resultEl.classList.remove('hidden');
-        });
+            if (user) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                userNameEl.textContent = user.displayName;
+                saveDataBtn.classList.remove('hidden');
+                loadDataBtn.classList.remove('hidden');
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                userNameEl.textContent = '';
+                saveDataBtn.classList.add('hidden');
+                loadDataBtn.classList.add('hidden');
+                // Optional: Clear data on logout
+                // resetAllData();
+            }
+        }
+        
+        async function saveData() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Please log in to save your data.");
+                return;
+            }
+            const saveDataBtn = document.getElementById('saveDataBtn');
+            saveDataBtn.textContent = "Saving...";
+            saveDataBtn.disabled = true;
+
+            const dataToSave = {
+                currentAge: currentAgeInput.value,
+                incomes, wants, assets, loans, goals, insurances,
+                lastSaved: new Date().toISOString()
+            };
+
+            try {
+                await db.collection("users").doc(user.uid).set(dataToSave);
+                alert("Data saved successfully!");
+            } catch (error) {
+                console.error("Error saving data: ", error);
+                alert("Could not save data. Please try again.");
+            } finally {
+                saveDataBtn.textContent = "Save Data";
+                saveDataBtn.disabled = false;
+            }
+        }
+
+        async function loadData() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Please log in to load your data.");
+                return;
+            }
+             const loadDataBtn = document.getElementById('loadDataBtn');
+            loadDataBtn.textContent = "Loading...";
+            loadDataBtn.disabled = true;
+
+            try {
+                const docRef = db.collection("users").doc(user.uid);
+                const doc = await docRef.get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    currentAgeInput.value = data.currentAge || '';
+                    incomes = data.incomes || [];
+                    wants = data.wants || [];
+                    assets = data.assets || [];
+                    loans = data.loans || [];
+                    goals = data.goals || [];
+                    insurances = data.insurances || [];
+                    
+                    renderAllLists();
+                    updateDashboard();
+                    alert("Data loaded successfully!");
+                } else {
+                    alert("No saved data found for your account.");
+                }
+            } catch (error) {
+                console.error("Error loading data: ", error);
+                alert("Could not load data. Please try again.");
+            } finally {
+                loadDataBtn.textContent = "Load Data";
+                loadDataBtn.disabled = false;
+            }
+        }
+
+        function resetAllData() {
+            loans = []; assets = []; goals = []; insurances = []; incomes = []; wants = [];
+            currentAgeInput.value = '';
+            renderAllLists();
+            updateDashboard();
+        }
 
         // --- INITIALIZATION ---
         window.onload = () => {
             showTab('dashboard');
             renderAllLists();
             updateDashboard();
+            
+            auth.onAuthStateChanged(user => {
+                updateUIForUser(user);
+            });
+
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('saveDataBtn').addEventListener('click', saveData);
+            document.getElementById('loadDataBtn').addEventListener('click', loadData);
+
             document.getElementById('downloadPdfBtn').addEventListener('click', () => downloadPDF('downloadPdfBtn', 'Wealth'));
             document.getElementById('downloadInputsBtn').addEventListener('click', () => {
                 const allData = [
@@ -354,6 +497,9 @@
             setupDynamicSelect(document.getElementById('incomeForm'), '.income-category-select', '.custom-income-category-input');
             setupDynamicSelect(document.getElementById('wantsForm'), '.wants-category-select', '.custom-wants-category-input');
             setupDynamicSelect(document.getElementById('assetForm'), '.asset-category-select', '.custom-asset-category-input');
+            
+            document.getElementById('recalculateBtn').addEventListener('click', () => {if (activeAnalysisIndex !== -1) {runFullLoanAnalysis(loans[activeAnalysisIndex]);}});
+            document.getElementById('refreshDashboardBtn').addEventListener('click', updateDashboard);
         };
     </script>
 </body>
