@@ -58,7 +58,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            padding-top: 64px; /* Added padding to prevent content from being hidden behind the fixed top bar */
+            padding-top: 64px; 
         }
         .card {
             background-color: white;
@@ -132,8 +132,8 @@
 
     <div class="max-w-7xl mx-auto">
         <header class="my-8 text-center">
-             <h1 class="text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
-            <p class="text-lg text-gray-600 mt-2">Your all-in-one dashboard for financial health, analysis, and growth.</p>
+             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
+            <p class="text-base sm:text-lg text-gray-600 mt-2">Your all-in-one dashboard for financial health, analysis, and growth.</p>
         </header>
 
         <!-- Navigation -->
@@ -146,9 +146,9 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboardTab" class="card rounded-t-none">
-             <div class="flex justify-between items-center mb-4">
+             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h2 class="text-2xl font-bold text-gray-700">Financial Health Dashboard</h2>
-                <div class="flex space-x-2">
+                <div class="flex flex-wrap space-x-2">
                     <button id="loadDataBtn" class="btn btn-secondary hidden"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 9.414V13h-2.5z"></path><path d="M9 13.243V15a1 1 0 01-1 1H3a1 1 0 01-1-1V9a1 1 0 011-1h3.03a3.53 3.53 0 01-.03 0z"></path></svg>Load Data</button>
                     <button id="saveDataBtn" class="btn btn-secondary hidden"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 9.414V13h-2.5z"></path><path d="M9 13.243V15a1 1 0 01-1 1H3a1 1 0 01-1-1V9a1 1 0 011-1h3.03a3.53 3.53 0 01-.03 0z" transform="rotate(180 10 10)"></path></svg>Save Data</button>
                     <button id="refreshDashboardBtn" class="btn btn-secondary"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7V9a1 1 0 01-2 0V3a1 1 0 011-1zm12 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13V11a1 1 0 112 0v5a1 1 0 01-1 1z" clip-rule="evenodd"></path></svg>Refresh</button>
