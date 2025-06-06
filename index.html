@@ -91,6 +91,10 @@
         .calc-result { padding: 1rem; background-color: #eef2ff; border-radius: 0.5rem; text-align: center; margin-top: 1rem;}
         .calc-result .label { font-size: 1rem; color: #4338ca; }
         .calc-result .value { font-size: 2rem; font-weight: 700; color: #312e81; }
+        .helper-icon { cursor: pointer; color: #9ca3af; margin-left: 0.5rem; display: inline-flex; font-weight: bold; }
+        .helper-icon:hover { color: #3b82f6; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.75rem; max-width: 500px; width: 90%; }
     </style>
 </head>
 <body class="p-4 sm:p-6 lg:p-8">
@@ -101,6 +105,7 @@
                 <button id="loginBtn" class="btn btn-primary text-sm py-2 px-3">Login with Google</button>
                 <div id="user-info" class="hidden items-center space-x-3">
                     <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                    <button id="deleteDataBtn" class="btn btn-danger text-sm py-2 px-3">Delete Data</button>
                     <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">Logout</button>
                 </div>
             </div>
@@ -136,16 +141,16 @@
                 <div id="report-section-inputs" class="hidden"></div>
                 <div id="dashboardContent">
                     <div id="report-section-summary" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div class="lg:col-span-1 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header w-full text-center">Financial Health Score</h3><div id="financialScoreGauge"></div></div>
-                        <div class="lg:col-span-2 p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header text-center">50-30-20 Budget Rule</h3><div class="h-64"><canvas id="budgetChart"></canvas></div></div>
+                        <div class="lg:col-span-1 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header w-full text-center">Financial Health Score <span class="helper-icon" data-help="score">?</span></h3><div id="financialScoreGauge"></div></div>
+                        <div class="lg:col-span-2 p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header text-center">50-30-20 Budget Rule <span class="helper-icon" data-help="budget">?</span></h3><div class="h-64"><canvas id="budgetChart"></canvas></div></div>
                         <div class="lg:col-span-1 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header w-full text-center">Debt-to-Income Ratio</h3><div id="dtiRatioGauge" class="text-4xl font-bold">0%</div></div>
                     </div>
                     <div id="report-section-budget-explanation" class="mt-8"><h3 class="pdf-section-header">Understanding Your 50-30-20 Budget</h3><div id="budgetRuleExplanation" class="text-sm text-gray-700 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
                     <div id="report-section-vitals" class="mt-8"><h3 class="pdf-section-header">Cash Flow Summary</h3><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
                     <div id="report-section-suggestions" class="mt-8"><h3 class="pdf-section-header">Suggestions for Improvement</h3><div id="suggestionsContainer"></div></div>
                     <div id="report-section-wealth" class="mt-8"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
-                    <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner</h3><div id="retirementPlanner" class="space-y-4"></div></div>
-                    <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner</h3><div id="goalPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner <span class="helper-icon" data-help="retirement">?</span></h3><div id="retirementPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner <span class="helper-icon" data-help="goals">?</span></h3><div id="goalPlanner" class="space-y-4"></div></div>
                 </div>
                 <div id="noDataOverlay" class="no-data-overlay absolute inset-0 bg-white/80 backdrop-blur-sm items-center justify-center text-center">
                     <div><h3 class="text-2xl font-bold text-gray-700">No Data Available</h3><p class="text-gray-600 mt-2">Go to 'Financial Inputs' and add your income to generate the dashboard.</p></div>
@@ -154,23 +159,38 @@
         </div>
         
         <!-- Inputs Tab -->
-        <div id="inputsTab" class="hidden"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4"><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Profile & Income</h3><div class="input-group"><label for="currentAge">Your Current Age</label><input type="number" id="currentAge" placeholder="e.g., 30"></div><form id="incomeForm"><div class="flex items-end space-x-2"><div class="flex-grow"><label>Income Source</label><select class="income-category-select w-full"><option value="Salary">Salary</option><option value="Rent">Rent</option><option value="Dividend">Dividend</option><option value="Pension">Pension/Returns</option><option value="Other">Other</option></select><input type="text" class="custom-income-category-input hidden w-full mt-2" placeholder="Custom Source"></div><div class="flex-grow"><label>Monthly Amount</label><input type="number" class="income-amount-input w-full" placeholder="50000" required></div><button type="submit" class="btn btn-primary h-10">Add</button></div></form><div id="incomeList" class="mt-4 space-y-2"></div></div><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Assets & Investments</h3><form id="assetForm"><div class="input-group"><label for="assetName">Asset/Investment Name</label><input type="text" id="assetName" placeholder="e.g., Mutual Fund SIP" required></div><div class="input-group"><label for="assetType">Type</label><select id="assetType" class="asset-category-select"><option value="stocks">Stocks/ETF</option><option value="mf">Mutual Funds</option><option value="epf">EPF/NPS</option><option value="chits">Chits</option><option value="bank">Bank Balance</option><option value="property">Real Estate</option><option value="Other">Other</option></select><input type="text" id="customAssetCategory" class="custom-asset-category-input hidden w-full mt-2" placeholder="Custom Type"></div><div class="input-group"><label for="assetValue">Current Value</label><input type="number" id="assetValue" placeholder="100000" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="monthlySip">Monthly SIP (Optional)</label><input type="number" id="monthlySip" placeholder="5000"></div><div class="input-group"><label for="assetReturn">Exp. Return (%/yr)</label><input type="number" id="assetReturn" placeholder="12" value="0"></div></div><button type="submit" class="btn btn-primary w-full">Add Asset</button></form><div id="assetList" class="mt-4 space-y-2"></div></div><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Expenses, Goals & Insurance</h3><h4 class="font-semibold mb-2">Discretionary Spends (Wants)</h4><form id="wantsForm"><div class="flex items-end space-x-2"><div class="flex-grow"><label>Category</label><select class="wants-category-select w-full"><option value="Shopping">Shopping</option><option value="Dining Out">Dining Out</option><option value="Entertainment">Entertainment</option><option value="Travel">Travel</option><option value="Other">Other</option></select><input type="text" class="custom-wants-category-input hidden w-full mt-2" placeholder="Custom Category"></div><div class="flex-grow"><label>Monthly Amount</label><input type="number" class="wants-amount-input w-full" placeholder="5000" required></div><button type="submit" class="btn btn-primary h-10">Add</button></div></form><div id="wantsList" class="mt-4 space-y-2"></div><hr class="my-6"><h3 class="text-lg font-bold text-gray-700 mb-2">Financial Goals</h3><form id="goalForm"><div class="input-group"><label for="goalName">Dream / Goal</label><input type="text" id="goalName" placeholder="e.g., House Downpayment" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="goalAmount">Target Amount</label><input type="number" id="goalAmount" placeholder="500000" required></div><div class="input-group"><label for="goalYears">Target (Years)</label><input type="number" id="goalYears" placeholder="5" required></div></div><button type="submit" class="btn btn-primary w-full">Add Goal</button></form><div id="goalList" class="mt-4 space-y-2"></div><hr class="my-6"><h3 class="text-lg font-bold text-gray-700 mb-2">Insurance</h3><form id="insuranceForm"><div class="input-group"><label for="insuranceType">Policy Type</label><select id="insuranceType"><option value="Term">Term Insurance</option><option value="Life">Life Insurance (Endowment/ULIP)</option><option value="Health">Health Insurance</option></select></div><div class="input-group"><label for="insuranceCover">Cover Amount</label><input type="number" id="insuranceCover" placeholder="10000000" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="premiumAmount">Premium Amount</label><input type="number" id="premiumAmount" placeholder="1500" required></div><div class="input-group"><label for="premiumFrequency">Frequency</label><select id="premiumFrequency"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div></div><button type="submit" class="btn btn-primary w-full">Add Insurance</button></form><div id="insuranceList" class="mt-4 space-y-2"></div></div><div class="col-span-full"><button id="downloadInputsBtn" class="btn btn-primary w-full">Download All Inputs as Excel</button></div></div></div>
+        <div id="inputsTab" class="hidden"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4"><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Profile & Income <span class="helper-icon" data-help="income">?</span></h3><div class="input-group"><label for="currentAge">Your Current Age</label><input type="number" id="currentAge" placeholder="e.g., 30"></div><form id="incomeForm"><div class="flex items-end space-x-2"><div class="flex-grow"><label>Income Source</label><select class="income-category-select w-full"><option value="Salary">Salary</option><option value="Rent">Rent</option><option value="Dividend">Dividend</option><option value="Pension">Pension/Returns</option><option value="Other">Other</option></select><input type="text" class="custom-income-category-input hidden w-full mt-2" placeholder="Custom Source"></div><div class="flex-grow"><label>Monthly Amount</label><input type="number" class="income-amount-input w-full" placeholder="50000" required></div><button type="submit" class="btn btn-primary h-10">Add</button></div></form><div id="incomeList" class="mt-4 space-y-2"></div></div><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Assets & Investments <span class="helper-icon" data-help="assets">?</span></h3><form id="assetForm"><div class="input-group"><label for="assetName">Asset/Investment Name</label><input type="text" id="assetName" placeholder="e.g., Mutual Fund SIP" required></div><div class="input-group"><label for="assetType">Type</label><select id="assetType" class="asset-category-select"><option value="stocks">Stocks/ETF</option><option value="mf">Mutual Funds</option><option value="epf">EPF/NPS</option><option value="chits">Chits</option><option value="bank">Bank Balance</option><option value="property">Real Estate</option><option value="Other">Other</option></select><input type="text" id="customAssetCategory" class="custom-asset-category-input hidden w-full mt-2" placeholder="Custom Type"></div><div class="input-group"><label for="assetValue">Current Value</label><input type="number" id="assetValue" placeholder="100000" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="monthlySip">Monthly SIP (Optional)</label><input type="number" id="monthlySip" placeholder="5000"></div><div class="input-group"><label for="assetReturn">Exp. Return (%/yr)</label><input type="number" id="assetReturn" placeholder="12" value="0"></div></div><button type="submit" class="btn btn-primary w-full">Add Asset</button></form><div id="assetList" class="mt-4 space-y-2"></div></div><div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Expenses, Goals & Insurance <span class="helper-icon" data-help="expenses">?</span></h3><h4 class="font-semibold mb-2">Discretionary Spends (Wants)</h4><form id="wantsForm"><div class="flex items-end space-x-2"><div class="flex-grow"><label>Category</label><select class="wants-category-select w-full"><option value="Shopping">Shopping</option><option value="Dining Out">Dining Out</option><option value="Entertainment">Entertainment</option><option value="Travel">Travel</option><option value="Other">Other</option></select><input type="text" class="custom-wants-category-input hidden w-full mt-2" placeholder="Custom Category"></div><div class="flex-grow"><label>Monthly Amount</label><input type="number" class="wants-amount-input w-full" placeholder="5000" required></div><button type="submit" class="btn btn-primary h-10">Add</button></div></form><div id="wantsList" class="mt-4 space-y-2"></div><hr class="my-6"><h3 class="text-lg font-bold text-gray-700 mb-2">Financial Goals</h3><form id="goalForm"><div class="input-group"><label for="goalName">Dream / Goal</label><input type="text" id="goalName" placeholder="e.g., House Downpayment" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="goalAmount">Target Amount</label><input type="number" id="goalAmount" placeholder="500000" required></div><div class="input-group"><label for="goalYears">Target (Years)</label><input type="number" id="goalYears" placeholder="5" required></div></div><button type="submit" class="btn btn-primary w-full">Add Goal</button></form><div id="goalList" class="mt-4 space-y-2"></div><hr class="my-6"><h3 class="text-lg font-bold text-gray-700 mb-2">Insurance</h3><form id="insuranceForm"><div class="input-group"><label for="insuranceType">Policy Type</label><select id="insuranceType"><option value="Term">Term Insurance</option><option value="Life">Life Insurance (Endowment/ULIP)</option><option value="Health">Health Insurance</option></select></div><div class="input-group"><label for="insuranceCover">Cover Amount</label><input type="number" id="insuranceCover" placeholder="10000000" required></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label for="premiumAmount">Premium Amount</label><input type="number" id="premiumAmount" placeholder="1500" required></div><div class="input-group"><label for="premiumFrequency">Frequency</label><select id="premiumFrequency"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div></div><button type="submit" class="btn btn-primary w-full">Add Insurance</button></form><div id="insuranceList" class="mt-4 space-y-2"></div></div><div class="col-span-full"><button id="downloadInputsBtn" class="btn btn-primary w-full">Download All Inputs as Excel</button></div></div></div>
         
         <!-- Loans Tab -->
-        <div id="loansTab" class="hidden pt-4"><div class="grid grid-cols-1 lg:grid-cols-5 gap-8"><div class="lg:col-span-2"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Add a New Loan</h2><form id="loanForm"><div class="input-group"><label for="loanName">Loan Name</label><input type="text" id="loanName" placeholder="e.g., Home Loan" required></div><div class="input-group"><label for="principalLeft">Principal Left (<span id="principalLeftDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="principalLeft" class="w-2/5" required><input type="range" id="principalLeftSlider" class="w-3/5" min="1000" max="50000000" step="1000"></div></div><div class="input-group"><label for="interestRate">Interest Rate (%) (<span id="interestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" step="0.01" id="interestRate" class="w-2/5" required><input type="range" id="interestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><div class="input-group"><label for="currentEMI">Contractual EMI (<span id="currentEMIDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="currentEMI" class="w-2/5" required><input type="range" id="currentEMISlider" class="w-3/5" min="100" max="200000" step="100"></div></div><div class="input-group"><label for="emisLeft">EMIs Left (<span id="emisLeftDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emisLeft" class="w-2/5" required><input type="range" id="emisLeftSlider" class="w-3/5" min="1" max="360" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Add Loan</button></form></div></div><div class="lg:col-span-3"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Your Loan Portfolio</h2><div id="loanList" class="space-y-3"></div></div></div></div><div id="detailedAnalysisSection" class="card hidden"><div id="loanReportContent"><div class="flex justify-between items-start mb-4"><h2 class="text-2xl font-bold text-gray-800">Loan Analysis for <span id="analysisLoanName" class="text-blue-600"></span></h2><div class="flex space-x-2"><button id="downloadLoanPdfBtn" class="btn btn-secondary">Report (PDF)</button><button id="downloadLoanExcelBtn" class="btn btn-primary">Schedule (Excel)</button></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"><div class="input-group"><label for="plannedEMI">Your Planned EMI</label><input type="number" id="plannedEMI"></div><div class="input-group"><label for="adhocPayment">Adhoc Bulk Payment (This Month)</label><input type="number" id="adhocPayment" value="0"></div><div class="flex items-end pb-4"><button id="recalculateBtn" class="btn btn-secondary w-full">Recalculate Projections</button></div></div><div id="report-loan-summary"> <div class="bg-gray-50 p-4 rounded-lg mb-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Repayment Projections</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"><div><p class="text-sm text-gray-500">Projected Finish Time</p><p id="projectedMonths" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Projected Total Interest</p><p id="projectedInterest" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Original Total Interest</p><p id="originalInterest" class="text-xl font-bold text-gray-600">-</p></div></div></div><div class="grid grid-cols-1 xl:grid-cols-2 gap-8"><div><h3 class="text-lg font-semibold text-gray-700 mb-4">Prepayment Scenarios (Interest Saved)</h3><table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-3 font-semibold text-sm">EMI Increase</th><th class="p-3 font-semibold text-sm">New EMI</th><th class="p-3 font-semibold text-sm">Total Interest Paid</th><th class="p-3 font-semibold text-sm text-green-600">Interest Saved</th></tr></thead><tbody id="interestReductionTable"></tbody></table></div><div id="amortization-section-container"> <h3 class="text-lg font-semibold text-gray-700 mb-4">Amortization Schedule</h3><div class="h-96 overflow-y-auto border rounded-lg"><table class="w-full text-left text-sm"><thead class="bg-gray-100 sticky top-0"><tr><th class="p-2 font-semibold">Month</th><th class="p-2 font-semibold">Opening</th><th class="p-2 font-semibold">Interest</th><th class="p-2 font-semibold">Principal</th><th class="p-2 font-semibold">Closing</th></tr></thead><tbody id="amortizationTableBody"></tbody></table></div></div></div></div></div></div></div>
+        <div id="loansTab" class="hidden pt-4"><div class="grid grid-cols-1 lg:grid-cols-5 gap-8"><div class="lg:col-span-2"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Add a New Loan <span class="helper-icon" data-help="loans">?</span></h2><form id="loanForm"><div class="input-group"><label for="loanName">Loan Name</label><input type="text" id="loanName" placeholder="e.g., Home Loan" required></div><div class="input-group"><label for="principalLeft">Principal Left (<span id="principalLeftDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="principalLeft" class="w-2/5" required><input type="range" id="principalLeftSlider" class="w-3/5" min="1000" max="50000000" step="1000"></div></div><div class="input-group"><label for="interestRate">Interest Rate (%) (<span id="interestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" step="0.01" id="interestRate" class="w-2/5" required><input type="range" id="interestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><div class="input-group"><label for="currentEMI">Contractual EMI (<span id="currentEMIDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="currentEMI" class="w-2/5" required><input type="range" id="currentEMISlider" class="w-3/5" min="100" max="200000" step="100"></div></div><div class="input-group"><label for="emisLeft">EMIs Left (<span id="emisLeftDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emisLeft" class="w-2/5" required><input type="range" id="emisLeftSlider" class="w-3/5" min="1" max="360" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Add Loan</button></form></div></div><div class="lg:col-span-3"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Your Loan Portfolio</h2><div id="loanList" class="space-y-3"></div></div></div></div><div id="detailedAnalysisSection" class="card hidden"><div id="loanReportContent"><div class="flex justify-between items-start mb-4"><h2 class="text-2xl font-bold text-gray-800">Loan Analysis for <span id="analysisLoanName" class="text-blue-600"></span></h2><div class="flex space-x-2"><button id="downloadLoanPdfBtn" class="btn btn-secondary">Report (PDF)</button><button id="downloadLoanExcelBtn" class="btn btn-primary">Schedule (Excel)</button></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"><div class="input-group"><label for="plannedEMI">Your Planned EMI</label><input type="number" id="plannedEMI"></div><div class="input-group"><label for="adhocPayment">Adhoc Bulk Payment (This Month)</label><input type="number" id="adhocPayment" value="0"></div><div class="flex items-end pb-4"><button id="recalculateBtn" class="btn btn-secondary w-full">Recalculate Projections</button></div></div><div id="report-loan-summary"> <div class="bg-gray-50 p-4 rounded-lg mb-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Repayment Projections</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"><div><p class="text-sm text-gray-500">Projected Finish Time</p><p id="projectedMonths" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Projected Total Interest</p><p id="projectedInterest" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Original Total Interest</p><p id="originalInterest" class="text-xl font-bold text-gray-600">-</p></div></div></div><div class="grid grid-cols-1 xl:grid-cols-2 gap-8"><div><h3 class="text-lg font-semibold text-gray-700 mb-4">Prepayment Scenarios (Interest Saved)</h3><table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-3 font-semibold text-sm">EMI Increase</th><th class="p-3 font-semibold text-sm">New EMI</th><th class="p-3 font-semibold text-sm">Total Interest Paid</th><th class="p-3 font-semibold text-sm text-green-600">Interest Saved</th></tr></thead><tbody id="interestReductionTable"></tbody></table></div><div id="amortization-section-container"> <h3 class="text-lg font-semibold text-gray-700 mb-4">Amortization Schedule</h3><div class="h-96 overflow-y-auto border rounded-lg"><table class="w-full text-left text-sm"><thead class="bg-gray-100 sticky top-0"><tr><th class="p-2 font-semibold">Month</th><th class="p-2 font-semibold">Opening</th><th class="p-2 font-semibold">Interest</th><th class="p-2 font-semibold">Principal</th><th class="p-2 font-semibold">Closing</th></tr></thead><tbody id="amortizationTableBody"></tbody></table></div></div></div></div></div></div></div>
 
         <!-- Calculators Tab -->
         <div id="calculatorsTab" class="hidden pt-4">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- EMI Calculator -->
-                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">EMI Calculator</h3><form id="emiCalcForm"><div class="input-group"><label for="emiLoanAmount">Loan Amount (<span id="emiLoanAmountDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiLoanAmount" class="w-2/5" required><input type="range" id="emiLoanAmountSlider" class="w-3/5" min="10000" max="50000000" step="10000"></div></div><div class="input-group"><label for="emiInterestRate">Interest Rate (%) (<span id="emiInterestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiInterestRate" step="0.01" class="w-2/5" required><input type="range" id="emiInterestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><div class="input-group"><label for="emiTenure">Tenure (Years) (<span id="emiTenureDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiTenure" class="w-2/5" required><input type="range" id="emiTenureSlider" class="w-3/5" min="1" max="30" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Calculate EMI</button></form><div id="emiResult" class="calc-result hidden"></div></div>
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">EMI Calculator <span class="helper-icon" data-help="emi">?</span></h3><form id="emiCalcForm"><div class="input-group"><label for="emiLoanAmount">Loan Amount (<span id="emiLoanAmountDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiLoanAmount" class="w-2/5" required><input type="range" id="emiLoanAmountSlider" class="w-3/5" min="10000" max="50000000" step="10000"></div></div><div class="input-group"><label for="emiInterestRate">Interest Rate (%) (<span id="emiInterestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiInterestRate" step="0.01" class="w-2/5" required><input type="range" id="emiInterestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><div class="input-group"><label for="emiTenure">Tenure (Years) (<span id="emiTenureDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="emiTenure" class="w-2/5" required><input type="range" id="emiTenureSlider" class="w-3/5" min="1" max="30" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Calculate EMI</button></form><div id="emiResult" class="calc-result hidden"></div></div>
                 <!-- Home Affordability -->
-                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Home Affordability Calculator</h3><form id="haForm"><div class="input-group"><label for="haMonthlyIncome">Gross Monthly Income (<span id="haMonthlyIncomeDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haMonthlyIncome" class="w-2/5" required><input type="range" id="haMonthlyIncomeSlider" class="w-3/5" min="10000" max="1000000" step="5000"></div></div><div class="input-group"><label for="haExistingEmi">Total Existing EMIs (<span id="haExistingEmiDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haExistingEmi" value="0" class="w-2/5" required><input type="range" id="haExistingEmiSlider" class="w-3/5" min="0" max="500000" step="1000"></div></div><div class="input-group"><label for="haTenure">Desired Loan Tenure (Years) (<span id="haTenureDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haTenure" value="20" class="w-2/5" required><input type="range" id="haTenureSlider" class="w-3/5" min="1" max="30" step="1"></div></div><div class="input-group"><label for="haInterestRate">Assumed Interest Rate (%) (<span id="haInterestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" step="0.01" id="haInterestRate" value="8.5" class="w-2/5" required><input type="range" id="haInterestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><button type="submit" class="btn btn-primary w-full">Calculate Affordability</button></form><div id="haResult" class="hidden mt-4"></div></div>
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Home Affordability <span class="helper-icon" data-help="affordability">?</span></h3><form id="haForm"><div class="input-group"><label for="haMonthlyIncome">Gross Monthly Income (<span id="haMonthlyIncomeDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haMonthlyIncome" class="w-2/5" required><input type="range" id="haMonthlyIncomeSlider" class="w-3/5" min="10000" max="1000000" step="5000"></div></div><div class="input-group"><label for="haExistingEmi">Total Existing EMIs (<span id="haExistingEmiDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haExistingEmi" value="0" class="w-2/5" required><input type="range" id="haExistingEmiSlider" class="w-3/5" min="0" max="500000" step="1000"></div></div><div class="input-group"><label for="haTenure">Desired Loan Tenure (Years) (<span id="haTenureDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="haTenure" value="20" class="w-2/5" required><input type="range" id="haTenureSlider" class="w-3/5" min="1" max="30" step="1"></div></div><div class="input-group"><label for="haInterestRate">Assumed Interest Rate (%) (<span id="haInterestRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" step="0.01" id="haInterestRate" value="8.5" class="w-2/5" required><input type="range" id="haInterestRateSlider" class="w-3/5" min="1" max="25" step="0.01"></div></div><button type="submit" class="btn btn-primary w-full">Calculate Affordability</button></form><div id="haResult" class="hidden mt-4"></div></div>
                 <!-- Investment Simulator -->
-                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Investment Scenario Simulator</h3><form id="sipForm"><div class="input-group"><label for="sipAmount">Monthly Investment (SIP) (<span id="sipAmountDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipAmount" class="w-2/5" required><input type="range" id="sipAmountSlider" class="w-3/5" min="500" max="100000" step="500"></div></div><div class="input-group"><label for="sipReturnRate">Expected Annual Return (%) (<span id="sipReturnRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipReturnRate" step="0.1" class="w-2/5" required><input type="range" id="sipReturnRateSlider" class="w-3/5" min="1" max="30" step="0.1"></div></div><div class="input-group"><label for="sipDuration">Investment Duration (Years) (<span id="sipDurationDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipDuration" class="w-2/5" required><input type="range" id="sipDurationSlider" class="w-3/5" min="1" max="40" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Simulate Growth</button></form><div id="sipResult" class="hidden mt-4"></div></div>
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Investment Simulator <span class="helper-icon" data-help="simulator">?</span></h3><form id="sipForm"><div class="input-group"><label for="sipAmount">Monthly Investment (SIP) (<span id="sipAmountDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipAmount" class="w-2/5" required><input type="range" id="sipAmountSlider" class="w-3/5" min="500" max="100000" step="500"></div></div><div class="input-group"><label for="sipReturnRate">Expected Annual Return (%) (<span id="sipReturnRateDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipReturnRate" step="0.1" class="w-2/5" required><input type="range" id="sipReturnRateSlider" class="w-3/5" min="1" max="30" step="0.1"></div></div><div class="input-group"><label for="sipDuration">Investment Duration (Years) (<span id="sipDurationDisplay"></span>)</label><div class="flex items-center space-x-2"><input type="number" id="sipDuration" class="w-2/5" required><input type="range" id="sipDurationSlider" class="w-3/5" min="1" max="40" step="1"></div></div><button type="submit" class="btn btn-primary w-full">Simulate Growth</button></form><div id="sipResult" class="hidden mt-4"></div></div>
             </div>
         </div>
 
+        <footer class="text-center text-sm text-gray-500 mt-8">
+            <a href="#" id="privacyPolicyLink" class="hover:underline">Privacy Policy</a>
+        </footer>
+
+    </div>
+    
+    <!-- Generic Modal -->
+    <div id="modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold"></h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
     <script>
@@ -307,7 +327,7 @@
                 pdf.setFontSize(10).text(`Generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`, pdf.internal.pageSize.getWidth() / 2, yPos, { align: 'center' }); yPos += 15;
 
                 let elementsToProcess = [];
-                if (type === 'Wealth') {
+                 if (type === 'Wealth') {
                     elementsToProcess = ['report-section-inputs', 'report-section-summary', 'report-section-vitals', 'report-section-budget-explanation', 'report-section-suggestions', 'report-section-wealth', 'report-section-retirement', 'report-section-goals'].map(id => document.getElementById(id));
                 } else if (type === 'Loan') {
                     const tempAmortizationEl = document.createElement('div');
@@ -405,6 +425,7 @@
             const userNameEl = document.getElementById('userName');
             const saveDataBtn = document.getElementById('saveDataBtn');
             const loadDataBtn = document.getElementById('loadDataBtn');
+            const deleteDataBtn = document.getElementById('deleteDataBtn');
             
             if (user) {
                 loginBtn.classList.add('hidden');
@@ -412,12 +433,14 @@
                 userNameEl.textContent = user.displayName;
                 saveDataBtn.classList.remove('hidden');
                 loadDataBtn.classList.remove('hidden');
+                deleteDataBtn.classList.remove('hidden');
             } else {
                 loginBtn.classList.remove('hidden');
                 userInfo.classList.add('hidden');
                 userNameEl.textContent = '';
                 saveDataBtn.classList.add('hidden');
                 loadDataBtn.classList.add('hidden');
+                 deleteDataBtn.classList.add('hidden');
             }
         }
         
@@ -464,17 +487,20 @@
                 const doc = await docRef.get();
                 if (doc.exists) {
                     const data = doc.data();
-                    currentAgeInput.value = data.currentAge || '';
-                    incomes = data.incomes || [];
-                    wants = data.wants || [];
-                    assets = data.assets || [];
-                    loans = data.loans || [];
-                    goals = data.goals || [];
-                    insurances = data.insurances || [];
-                    
-                    renderAllLists();
-                    updateDashboard();
-                    alert("Data loaded successfully!");
+                    const lastSavedDate = new Date(data.lastSaved).toLocaleString();
+                    if(confirm(`Saved data found from ${lastSavedDate}. Do you want to load it?`)) {
+                        currentAgeInput.value = data.currentAge || '';
+                        incomes = data.incomes || [];
+                        wants = data.wants || [];
+                        assets = data.assets || [];
+                        loans = data.loans || [];
+                        goals = data.goals || [];
+                        insurances = data.insurances || [];
+                        
+                        renderAllLists();
+                        updateDashboard();
+                        alert("Data loaded successfully!");
+                    }
                 } else {
                     alert("No saved data found for your account.");
                 }
@@ -486,6 +512,23 @@
                 loadDataBtn.disabled = false;
             }
         }
+        
+        async function deleteUserData() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            if (confirm("Are you sure you want to permanently delete all your saved financial data? This action cannot be undone.")) {
+                try {
+                    await db.collection("users").doc(user.uid).delete();
+                    alert("Your saved data has been deleted.");
+                    resetAllData();
+                } catch (error) {
+                    console.error("Error deleting data:", error);
+                    alert("Could not delete your data. Please try again.");
+                }
+            }
+        }
+
 
         function resetAllData() {
             loans = []; assets = []; goals = []; insurances = []; incomes = []; wants = [];
@@ -502,7 +545,7 @@
             
             auth.onAuthStateChanged(user => {
                 updateUIForUser(user);
-                 if (user) { // Automatically load data on login
+                 if (user) { 
                     loadData();
                 } else {
                     resetAllData();
@@ -513,6 +556,7 @@
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
             document.getElementById('saveDataBtn').addEventListener('click', saveData);
             document.getElementById('loadDataBtn').addEventListener('click', loadData);
+            document.getElementById('deleteDataBtn').addEventListener('click', deleteUserData);
 
             document.getElementById('downloadPdfBtn').addEventListener('click', () => downloadPDF('downloadPdfBtn', 'Wealth'));
             document.getElementById('downloadInputsBtn').addEventListener('click', () => {
@@ -565,6 +609,52 @@
             setupSlider('sipAmount', 'sipAmountSlider', 'sipAmountDisplay', (val) => formatCurrency(val));
             setupSlider('sipReturnRate', 'sipReturnRateSlider', 'sipReturnRateDisplay');
             setupSlider('sipDuration', 'sipDurationSlider', 'sipDurationDisplay');
+            
+            // Modal and Helper Icon Logic
+            const modal = document.getElementById('modal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            function showModal(title, content) {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = content;
+                modal.classList.remove('hidden');
+            }
+            closeModalBtn.onclick = () => modal.classList.add('hidden');
+            
+            const helpContent = {
+                score: 'This score (0-100) gives a snapshot of your financial health. It is based on your savings rate, debt levels, emergency fund, and insurance coverage.',
+                budget: 'This chart shows your spending based on the 50-30-20 rule: 50% for Needs (EMIs, essentials), 30% for Wants (lifestyle), and 20% for Savings.',
+                retirement: 'This estimates the total corpus you may need for retirement based on your current lifestyle expenses and calculates the required monthly investment (SIP) to reach it.',
+                goals: 'Set your financial goals here, like a downpayment for a house or a car. The planner will calculate the monthly SIP needed to achieve each goal.',
+                income: 'Add all your sources of monthly income here. This is the foundation for all calculations.',
+                assets: 'Log all your assets, their current value, and any ongoing monthly investments (SIPs). This is used to calculate your net worth and project its growth.',
+                expenses: 'Categorize your discretionary spending (Wants) to understand your lifestyle expenses. Add your insurance policies to factor their premiums into your budget as "Needs".',
+                loans: 'Add and manage all your loans. You can analyze each one to see its full repayment schedule and the impact of prepayments.',
+                emi: 'Calculate the Equated Monthly Instalment (EMI) for any loan by providing the loan amount, interest rate, and tenure.',
+                affordability: 'Estimate the maximum home loan you can afford based on your income, existing financial commitments, and desired loan terms.',
+                simulator: 'A "what-if" tool to see how a specific monthly investment (SIP) could grow over time at an expected rate of return.'
+            };
+            
+            document.querySelectorAll('.helper-icon').forEach(icon => {
+                icon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const helpKey = e.target.dataset.help;
+                    showModal('Help', helpContent[helpKey]);
+                });
+            });
+
+            document.getElementById('privacyPolicyLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                const privacyContent = `
+                    <p class="mb-2"><strong>1. Data Storage:</strong> When you log in with your Google Account, your financial data is saved securely in your own private document within our Firestore database. Only you, the authenticated user, can access this data.</p>
+                    <p class="mb-2"><strong>2. Data Usage:</strong> Your data is only used to power the features within this application and is never shared with third parties.</p>
+                    <p class="mb-2"><strong>3. User Control:</strong> You have full control over your data. You can use the "Delete Data" button in your user profile area to permanently erase all your saved information from our database at any time.</p>
+                    <p>If you do not log in, all data remains in your browser for the current session and is not saved anywhere.</p>
+                `;
+                showModal('Privacy Policy', privacyContent);
+            });
         };
     </script>
 </body>
