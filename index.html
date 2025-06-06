@@ -163,14 +163,14 @@
                 <div id="report-section-inputs" class="hidden"></div>
                 <div id="dashboardContent">
                     <div id="report-section-summary" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div class="lg:col-span-1 p-4 rounded-lg bg-gray-50 flex flex-col items-center justify-center"><h3 class="pdf-section-header w-full text-center">Financial Health Score</h3><span class="helper-icon" data-help="score">?</span><div id="financialScoreGauge"></div></div>
-                        <div class="lg:col-span-2 p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header text-center">50-30-20 Budget Rule</h3><span class="helper-icon" data-help="budget">?</span><div class="h-64"><canvas id="budgetChart"></canvas></div></div>
+                        <div class="lg:col-span-1 p-4 rounded-lg bg-gray-50 flex flex-col items-center justify-center relative"><h3 class="pdf-section-header w-full text-center">Financial Health Score</h3><span class="helper-icon" data-help="score">?</span><div id="financialScoreGauge"></div></div>
+                        <div class="lg:col-span-2 p-4 rounded-lg bg-gray-50 relative"><h3 class="pdf-section-header text-center">50-30-20 Budget Rule</h3><span class="helper-icon" data-help="budget">?</span><div class="h-64"><canvas id="budgetChart"></canvas></div></div>
                         <div class="lg:col-span-1 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header w-full text-center">Debt-to-Income Ratio</h3><div id="dtiRatioGauge" class="text-4xl font-bold">0%</div></div>
                     </div>
                     <div id="report-section-budget-explanation" class="mt-8"><h3 class="pdf-section-header">Understanding Your 50-30-20 Budget</h3><div id="budgetRuleExplanation" class="text-sm text-gray-700 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
                     <div id="report-section-vitals" class="mt-8"><h3 class="pdf-section-header">Cash Flow Summary</h3><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
                     <div id="report-section-suggestions" class="mt-8"><h3 class="pdf-section-header">Suggestions for Improvement</h3><div id="suggestionsContainer"></div></div>
-                    <div id="report-section-wealth" class="mt-8"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
+                    <div id="report-section-wealth" class="mt-8"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><span class="helper-icon" data-help="wealth">?</span><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
                     <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner</h3><span class="helper-icon" data-help="retirement">?</span><div id="retirementPlanner" class="space-y-4"></div></div>
                     <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner</h3><span class="helper-icon" data-help="goals">?</span><div id="goalPlanner" class="space-y-4"></div></div>
                 </div>
@@ -335,7 +335,7 @@
                     { label: 'Potential Net Worth (with Extra Savings)', data: projectionPotential, borderColor: '#22c55e', tension: 0.1, fill: false, borderDash: [5, 5], borderWidth: 2 }
                 ]
             }; 
-            renderChart('wealthGrowthChart', 'line', wealthData, { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { callback: value => formatLargeCurrency(value) } } } });
+            renderChart('wealthGrowthChart', 'line', wealthData, { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top' } }, scales: { y: { ticks: { callback: value => formatLargeCurrency(value) } } } });
 
             renderGoalPlanner();
             renderRetirementPlanner(weightedAvgReturn);
@@ -608,7 +608,7 @@
             modalBody.innerHTML = `<p>${title}</p>`;
             modalActions.innerHTML = `
                 <button id="modalCancelBtn" class="btn btn-secondary">Cancel</button>
-                <button id="modalConfirmBtn" class="btn btn-danger">Yes, Delete</button>
+                <button id="modalConfirmBtn" class="btn btn-danger">Yes, Proceed</button>
             `;
             modal.classList.add('active');
             confirmCallback = onConfirm;
