@@ -58,7 +58,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            padding-top: 64px; 
+            padding-top: 64px; /* Added padding to prevent content from being hidden behind the fixed top bar */
         }
         .card {
             background-color: white;
@@ -618,7 +618,7 @@
                     ...wants.map(w => ({ Type: 'Want', Details: w.category, Amount: w.amount })),
                     ...assets.map(a => ({ Type: 'Asset', Details: a.name, Asset_Type: a.type, Value: a.value, Monthly_SIP: a.monthlySip, Return_Rate_Percent: a.returnRate })),
                     ...loans.map(l => ({ Type: 'Loan', Details: l.name, Principal: l.principal, EMI: l.emi, Rate_Percent: l.rate })),
-                    ...insurances.map(i => ({ Type: 'Insurance', Details: i.type, Cover: i.cover, Premium: i.premiumAmount, Frequency: i.premiumFrequency })),
+                    ...insurances.map(i => ({ Type: 'Insurance', Details: i.type, Cover: i.cover, Premium: i.premiumAmount, Frequency: i.premiumFrequency, Policy_Term: i.policyTerm, Premium_Term: i.premiumTerm })),
                     ...goals.map(g => ({ Type: 'Goal', Details: g.name, Target_Amount: g.amount, Years_to_Achieve: g.years, Expected_Return: g.expectedReturn }))
                 ];
                 if (allData.length > 0) {
