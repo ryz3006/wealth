@@ -72,7 +72,7 @@
         .input-group label { display: block; color: #4b5563; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
         .input-group input, .input-group select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; transition: border-color 0.2s, box-shadow 0.2s; }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
-        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-align: center; }
+        .btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
         .btn-primary { background-color: #3b82f6; color: white; }
         .btn-primary:hover:not(:disabled) { background-color: #2563eb; }
         .btn-secondary { background-color: #6b7280; color: white; }
@@ -94,8 +94,10 @@
         .calc-result .value { font-size: 2rem; font-weight: 700; color: #312e81; }
         .helper-icon { position: absolute; top: 0.5rem; right: 0.5rem; cursor: pointer; color: #9ca3af; font-weight: bold; width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
         .helper-icon:hover { color: #3b82f6; background-color: #e5e7eb; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 2rem; border-radius: 0.75rem; max-width: 500px; width: 90%; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;}
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.75rem; max-width: 500px; width: 90%; transform: scale(0.95); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
         .radial-progress { width: 150px; height: 150px; position: relative; }
         .radial-progress .circle .mask, .radial-progress .circle .fill { width: 150px; height: 150px; position: absolute; border-radius: 50%; }
         .radial-progress .circle .mask { clip: rect(0px, 150px, 150px, 75px); }
@@ -113,11 +115,20 @@
                 <span class="text-xl font-bold text-gray-800 hidden sm:inline">AMIGOS - Finance Planner</span>
             </a>
             <div id="auth-container">
-                <button id="loginBtn" class="btn btn-primary text-sm py-2 px-3">Login with Google</button>
+                <button id="loginBtn" class="btn btn-primary text-sm py-2 px-3">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM5.5 10a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"></path></svg>
+                    Login with Google
+                </button>
                 <div id="user-info" class="hidden items-center space-x-3">
                     <span id="userName" class="text-sm font-medium text-gray-700"></span>
-                    <button id="deleteDataBtn" class="btn btn-danger text-sm py-2 px-3">Delete Data</button>
-                    <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">Logout</button>
+                    <button id="deleteDataBtn" class="btn btn-danger text-sm py-2 px-3">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+                        Delete Data
+                    </button>
+                    <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">
+                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path></svg>
+                        Logout
+                    </button>
                 </div>
             </div>
         </div>
@@ -142,10 +153,10 @@
              <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-gray-700">Financial Health Dashboard</h2>
                 <div class="flex space-x-2">
-                    <button id="loadDataBtn" class="btn btn-secondary hidden">Load Data</button>
-                    <button id="saveDataBtn" class="btn btn-secondary hidden">Save Data</button>
-                    <button id="refreshDashboardBtn" class="btn btn-secondary">Refresh</button>
-                    <button id="downloadPdfBtn" class="btn btn-primary">Download Wealth Report</button>
+                    <button id="loadDataBtn" class="btn btn-secondary hidden"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 9.414V13h-2.5z"></path><path d="M9 13.243V15a1 1 0 01-1 1H3a1 1 0 01-1-1V9a1 1 0 011-1h3.03a3.53 3.53 0 01-.03 0z"></path></svg>Load Data</button>
+                    <button id="saveDataBtn" class="btn btn-secondary hidden"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.414l-1.293 1.293a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L13 9.414V13h-2.5z"></path><path d="M9 13.243V15a1 1 0 01-1 1H3a1 1 0 01-1-1V9a1 1 0 011-1h3.03a3.53 3.53 0 01-.03 0z" transform="rotate(180 10 10)"></path></svg>Save Data</button>
+                    <button id="refreshDashboardBtn" class="btn btn-secondary"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7V9a1 1 0 01-2 0V3a1 1 0 011-1zm12 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13V11a1 1 0 112 0v5a1 1 0 01-1 1z" clip-rule="evenodd"></path></svg>Refresh</button>
+                    <button id="downloadPdfBtn" class="btn btn-primary"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>Download Wealth Report</button>
                 </div>
             </div>
             <div id="dashboardReport" class="relative">
@@ -160,8 +171,8 @@
                     <div id="report-section-vitals" class="mt-8"><h3 class="pdf-section-header">Cash Flow Summary</h3><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
                     <div id="report-section-suggestions" class="mt-8"><h3 class="pdf-section-header">Suggestions for Improvement</h3><div id="suggestionsContainer"></div></div>
                     <div id="report-section-wealth" class="mt-8"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
-                    <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner<span class="helper-icon" data-help="retirement">?</span></h3><div id="retirementPlanner" class="space-y-4"></div></div>
-                    <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner<span class="helper-icon" data-help="goals">?</span></h3><div id="goalPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner</h3><span class="helper-icon" data-help="retirement">?</span><div id="retirementPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner</h3><span class="helper-icon" data-help="goals">?</span><div id="goalPlanner" class="space-y-4"></div></div>
                 </div>
                 <div id="noDataOverlay" class="no-data-overlay absolute inset-0 bg-white/80 backdrop-blur-sm items-center justify-center text-center">
                     <div><h3 class="text-2xl font-bold text-gray-700">No Data Available</h3><p class="text-gray-600 mt-2">Go to 'Financial Inputs' and add your income to generate the dashboard.</p></div>
@@ -201,6 +212,7 @@
                 <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
             </div>
             <div id="modalBody"></div>
+            <div id="modalActions" class="mt-6 text-right space-x-3"></div>
         </div>
     </div>
 
@@ -249,7 +261,7 @@
         function renderAllLists() {
             const loanListEl = document.getElementById('loanList'); if (loans.length > 0) loanListEl.innerHTML = loans.map((loan, index) => `<div class="flex items-center justify-between p-3 border rounded-lg bg-white shadow-sm"><div><p class="font-bold text-gray-800">${loan.name}</p><p class="text-sm text-gray-600">Principal: ${formatCurrency(loan.principal)} | EMI: ${formatCurrency(loan.emi)}</p></div><div class="flex space-x-2"><button class="btn btn-primary text-sm py-2 px-3" onclick="analyzeLoan(${index})">Analyze</button><button class="btn btn-danger text-sm py-2 px-3" onclick="deleteItem('loans', ${index})">Delete</button></div></div>`).join(''); else loanListEl.innerHTML = `<p class="text-gray-500 text-center">No loans added.</p>`;
             const assetListEl = document.getElementById('assetList'); if (assets.length > 0) assetListEl.innerHTML = assets.map((a, i) => `<div class="text-sm p-1 border-t mt-2"><div><span class="font-bold">${a.name} (${a.type})</span> <button class="text-red-500 ml-2 font-bold float-right" onclick="deleteItem('assets', ${i})">X</button></div><div>Value: ${formatCurrency(a.value)} | SIP: ${formatCurrency(a.monthlySip)}/mo</div></div>`).join(''); else assetListEl.innerHTML = ``;
-            const goalListEl = document.getElementById('goalList'); if (goals.length > 0) goalListEl.innerHTML = goals.map((g, i) => `<div class="text-sm flex justify-between p-1"><span>${g.name}</span> <span class="font-medium">${formatLargeCurrency(g.amount)} <button class="text-red-500 ml-2 font-bold" onclick="deleteItem('goals', ${i})">X</button></span></div>`).join(''); else goalListEl.innerHTML = ``;
+            const goalListEl = document.getElementById('goalList'); if (goals.length > 0) goalListEl.innerHTML = goals.map((g, i) => `<div class="text-sm p-1 border-t mt-2"><div><span class="font-bold">${g.name}</span><button class="text-red-500 ml-2 font-bold float-right" onclick="deleteItem('goals', ${i})">X</button></div><div class="flex justify-between"><span>Target: ${formatLargeCurrency(g.amount)} in ${g.years} yrs</span><span class="text-xs">@ ${g.expectedReturn}% returns</span></div></div>`).join(''); else goalListEl.innerHTML = ``;
             const insuranceListEl = document.getElementById('insuranceList'); if (insurances.length > 0) insuranceListEl.innerHTML = insurances.map((ins, i) => `<div class="text-sm p-1 border-t mt-2"><div><span class="font-bold">${ins.type}</span> <button class="text-red-500 ml-2 font-bold float-right" onclick="deleteItem('insurances', ${i})">X</button></div><div>Cover: ${formatLargeCurrency(ins.cover)} | Premium: ${formatCurrency(ins.premiumAmount)}/${ins.premiumFrequency}</div></div>`).join(''); else insuranceListEl.innerHTML = ``;
             const incomeListEl = document.getElementById('incomeList'); if(incomes.length > 0) incomeListEl.innerHTML = incomes.map((inc, i) => `<div class="text-sm flex justify-between p-1 border-t mt-2"><span>${inc.source}</span><span class="font-medium">${formatCurrency(inc.amount)} <button class="text-red-500 ml-2 font-bold" onclick="deleteItem('incomes', ${i})">X</button></span></div>`).join(''); else incomeListEl.innerHTML = '';
             const wantsListEl = document.getElementById('wantsList'); if(wants.length > 0) wantsListEl.innerHTML = wants.map((w, i) => `<div class="text-sm flex justify-between p-1 border-t mt-2"><span>${w.category}</span><span class="font-medium">${formatCurrency(w.amount)} <button class="text-red-500 ml-2 font-bold" onclick="deleteItem('wants', ${i})">X</button></span></div>`).join(''); else wantsListEl.innerHTML = '';
@@ -335,7 +347,7 @@
         
         function renderFinancialVitals({ totalMonthlyIncome, totalMonthlySips, totalEMI, potentialExtraSavings }) { const container = document.getElementById('financialVitalsContainer'); container.innerHTML = `<div class="vitals-card"><div class="label">Total Monthly Income</div><div class="value text-green-600">${formatCurrency(totalMonthlyIncome)}</div></div><div class="vitals-card"><div class="label">Total Monthly Investments</div><div class="value text-blue-600">${formatCurrency(totalMonthlySips)}</div></div><div class="vitals-card"><div class="label">Total Monthly EMI</div><div class="value text-red-600">${formatCurrency(totalEMI)}</div></div><div class="vitals-card"><div class="label">Potential Extra Savings</div><div class="value text-yellow-500">${formatCurrency(potentialExtraSavings)}</div></div>`; }
         function renderSuggestions({emergencyFundRatio, liquidAssets, monthlyExpenses, yearlyIncome}) { const container = document.getElementById('suggestionsContainer'); let html = ''; if (emergencyFundRatio < 1) { const targetFund = monthlyExpenses * 6; html += `<div class="suggestion-card"><strong>Emergency Fund Alert:</strong> Your fund is at ${formatCurrency(liquidAssets)}. It is recommended to have at least 6 months of expenses (${formatCurrency(targetFund)}) for financial security.</div>`; } if (!insurances.some(i => i.type === 'Health')) { html += `<div class="suggestion-card"><strong>Health Insurance Gap:</strong> A health insurance policy is crucial to protect your savings from unexpected medical emergencies. Consider getting a family floater plan.</div>`; } if (!insurances.some(i => i.type === 'Term')) { const targetCover = yearlyIncome * 15; html += `<div class="suggestion-card"><strong>Term Insurance Recommended:</strong> To protect your family's future, a term plan of at least 10-15 times your annual income (${formatLargeCurrency(targetCover)}) is advisable.</div>`; } if(html === '') { html = '<p class="text-center text-gray-600">You are on the right track with your core financial safety net. Keep it up!</p>'; } container.innerHTML = html; }
-        function renderWealthGrowthExplanation({netWorth, totalMonthlySips, potentialExtraSavings, weightedAvgReturn}) { const container = document.getElementById('wealthGrowthExplanation'); container.innerHTML = `The solid line shows your net worth projection starting from <strong>${formatLargeCurrency(netWorth)}</strong> and growing with your current monthly investments of <strong>${formatCurrency(totalMonthlySips)}</strong>. The dotted line shows the potential growth if you also invest your extra savings of <strong>${formatCurrency(potentialExtraSavings)}</strong> each month. All projections use an estimated <strong>${(weightedAvgReturn * 100).toFixed(1)}%</strong> annual return.`; }
+        function renderWealthGrowthExplanation({netWorth, totalMonthlySips, potentialExtraSavings, weightedAvgReturn}) { const container = document.getElementById('wealthGrowthExplanation'); container.innerHTML = `This projection starts with your current Net Worth of <strong>${formatLargeCurrency(netWorth)}</strong>. Each year, it grows based on an estimated <strong>${(weightedAvgReturn * 100).toFixed(1)}%</strong> average annual return and your annual contributions of <strong>${formatLargeCurrency(totalMonthlySips * 12)}</strong> (solid line). The dotted line shows your potential growth if you also invest your extra savings of <strong>${formatCurrency(potentialExtraSavings)}</strong> each month.`; }
         function renderGoalPlanner() { const goalPlannerEl = document.getElementById('goalPlanner'); if (goals.length === 0) { goalPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Add goals in 'Financial Inputs' to see your plan.</p>`; return; } goalPlannerEl.innerHTML = goals.map(g => { const monthlyInvRate = (g.expectedReturn / 100) / 12; const n = g.years * 12; if(monthlyInvRate <= 0) return `<div class="p-3 bg-gray-50 rounded-lg"><span class="font-semibold text-center">Cannot calculate SIP for ${g.name} without a positive return.</span></div>`; const requiredSip = g.amount * (monthlyInvRate / (Math.pow(1 + monthlyInvRate, n) - 1)); return `<div class="p-3 bg-gray-50 rounded-lg grid grid-cols-1 sm:grid-cols-3 items-center text-center sm:text-left"><span class="font-semibold">${g.name}</span><span>Target: ${formatLargeCurrency(g.amount)} in ${g.years} yrs</span><span class="sm:text-right font-bold text-blue-600">Req. SIP: ${formatCurrency(requiredSip)}/mo @ ${g.expectedReturn}%</span></div>`; }).join(''); }
         function renderRetirementPlanner(weightedAvgReturn) { const retirementPlannerEl = document.getElementById('retirementPlanner'); const currentAge = parseInt(currentAgeInput.value) || 0; const retirementAge = 60; if (currentAge === 0) { retirementPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Enter your current age in 'Financial Inputs' for a retirement plan.</p>`; return; } const yearsToRetire = retirementAge - currentAge; if (yearsToRetire <= 0) { retirementPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Retirement age reached or passed.</p>`; return; } const yearlyExpenses = wants.reduce((sum, w) => sum + w.amount, 0) * 12; const targetCorpus = yearlyExpenses / 0.04; const monthlyInvRate = (weightedAvgReturn || 0.08) / 12; const n = yearsToRetire * 12; const currentNetWorth = assets.reduce((sum, a) => sum + a.value, 0) - loans.reduce((sum, l) => sum + l.principal, 0); const fvOfCurrent = currentNetWorth * Math.pow(1 + monthlyInvRate, n); const totalMonthlySavings = incomes.reduce((sum, i) => sum + i.amount, 0) - (loans.reduce((sum, l) => sum + l.emi, 0) + insurances.reduce((sum, i) => sum + (i.premiumFrequency === 'monthly' ? i.premiumAmount : i.premiumAmount / 12), 0)) - wants.reduce((sum, w) => sum + w.amount, 0); const fvOfSips = totalMonthlySavings * ((Math.pow(1 + monthlyInvRate, n) - 1) / monthlyInvRate); const totalFutureValue = fvOfCurrent + fvOfSips; const shortfall = targetCorpus - totalFutureValue; retirementPlannerEl.innerHTML = `<div class="p-3 bg-blue-50 rounded-lg grid grid-cols-1 sm:grid-cols-3 items-center text-center sm:text-left"><span class="font-semibold">Retirement at ${retirementAge}</span><span>Target Corpus: ${formatLargeCurrency(targetCorpus)}</span>${shortfall > 0 ? `<span class="sm:text-right font-bold text-red-600">Shortfall: ${formatLargeCurrency(shortfall)}</span>` : `<span class="sm:text-right font-bold text-green-600">On Track!</span>`}</div>`; }
         function renderBudgetRuleExplanation({ needsPercent, wantsPercent, savingsPercent, totalMonthlyIncome }) { const container = document.getElementById('budgetRuleExplanation'); let html = `<p class="mb-2">The <strong>50-30-20 rule</strong> is a simple budgeting guideline: allocate <strong>50%</strong> of your income to Needs (essentials like EMIs, premiums), <strong>30%</strong> to Wants (lifestyle spending), and <strong>20%</strong> to Savings & Investments.</p>`; html += `<p class="mb-2"><strong>Your current breakdown is:</strong></p><ul class="list-disc list-inside mb-4"><li><strong>Needs:</strong> ${needsPercent.toFixed(1)}%</li><li><strong>Wants:</strong> ${wantsPercent.toFixed(1)}%</li><li><strong>Savings:</strong> ${savingsPercent.toFixed(1)}%</li></ul><h4 class="font-semibold mb-2">How to align with the rule:</h4>`; if (savingsPercent < 20) { html += `<div class="suggestion-card">Your savings rate of ${savingsPercent.toFixed(1)}% is below the recommended 20%. Try to increase this by reducing 'Wants' or optimizing 'Needs'. Every extra rupee saved accelerates your wealth growth.</div>`; } if (wantsPercent > 30) { const excess = (wantsPercent - 30) / 100 * totalMonthlyIncome; html += `<div class="suggestion-card">Your spending on 'Wants' is at ${wantsPercent.toFixed(1)}%. Consider reducing this by about <strong>${formatCurrency(excess)}/month</strong> to meet the 30% target and boost your savings.</div>`; } if (needsPercent > 50) { html += `<div class="suggestion-card">Your 'Needs' are at ${needsPercent.toFixed(1)}%. While often fixed, see if high-interest loans can be refinanced or if insurance premiums can be optimized (e.g., paying annually).</div>`; } if (savingsPercent >= 20 && wantsPercent <= 30 && needsPercent <= 50) { html += `<div class="suggestion-card bg-green-100 border-green-500"><strong>Excellent!</strong> Your budget aligns well with the 50-30-20 rule. You are doing a great job managing your cash flow.</div>`; } container.innerHTML = html; }
@@ -346,7 +358,7 @@
         function renderDtiGauge(dti) { const gaugeEl = document.getElementById('dtiRatioGauge'); const color = dti > 50 ? '#ef4444' : dti > 40 ? '#f59e0b' : '#22c55e'; gaugeEl.textContent = `${dti.toFixed(1)}%`; gaugeEl.style.color = color; }
 
         // --- EXCEL/CSV DOWNLOAD FUNCTION ---
-        function downloadCSV(data, filename) { if (!data || data.length === 0) { alert('No data to download.'); return; } const allHeaders = new Set(); data.forEach(row => { Object.keys(row).forEach(key => allHeaders.add(key)); }); const headers = Array.from(allHeaders); const csvRows = [headers.join(',')]; for (const row of data) { const values = headers.map(header => { const value = row[header] === undefined || row[header] === null ? '' : row[header]; const escaped = ('' + value).replace(/"/g, '""'); return `"${escaped}"`; }); csvRows.push(values.join(',')); } const csvString = csvRows.join('\n'); const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); const url = URL.createObjectURL(blob); link.setAttribute('href', url); link.setAttribute('download', filename); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        function downloadCSV(data, filename) { if (!data || data.length === 0) { showModal('Download Error', 'No data to download.'); return; } const allHeaders = new Set(); data.forEach(row => { Object.keys(row).forEach(key => allHeaders.add(key)); }); const headers = Array.from(allHeaders); const csvRows = [headers.join(',')]; for (const row of data) { const values = headers.map(header => { const value = row[header] === undefined || row[header] === null ? '' : row[header]; const escaped = ('' + value).replace(/"/g, '""'); return `"${escaped}"`; }); csvRows.push(values.join(',')); } const csvString = csvRows.join('\n'); const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); const url = URL.createObjectURL(blob); link.setAttribute('href', url); link.setAttribute('download', filename); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
         // --- PDF DOWNLOAD FUNCTIONS ---
         async function downloadPDF(buttonId, type) {
@@ -401,7 +413,7 @@
                 }
 
                 pdf.save(filename);
-            } catch (error) { console.error("Error generating PDF:", error); alert("An error occurred while generating the PDF report."); } 
+            } catch (error) { console.error("Error generating PDF:", error); showModal('Error', 'An error occurred while generating the PDF report.'); } 
             finally { downloadBtn.textContent = `Download ${type} Report`; downloadBtn.disabled = false; }
         }
         
@@ -424,7 +436,7 @@
             if(slider) slider.addEventListener('input', () => update(slider.value));
             if(input && slider) update(input.value || slider.value); // Initial sync
         }
-        window.deleteItem = (type, index) => { if (confirm('Are you sure?')) { if (type === 'loans') {loans.splice(index, 1); if(activeAnalysisIndex === index) {document.getElementById('detailedAnalysisSection').classList.add('hidden'); activeAnalysisIndex = -1;}} if (type === 'assets') assets.splice(index, 1); if (type === 'goals') goals.splice(index, 1); if (type === 'insurances') insurances.splice(index, 1); if(type === 'incomes') incomes.splice(index, 1); if(type === 'wants') wants.splice(index, 1); renderAllLists(); updateDashboard(); } }
+        window.deleteItem = (type, index) => { showConfirmationModal('Are you sure?', () => { if (type === 'loans') {loans.splice(index, 1); if(activeAnalysisIndex === index) {document.getElementById('detailedAnalysisSection').classList.add('hidden'); activeAnalysisIndex = -1;}} if (type === 'assets') assets.splice(index, 1); if (type === 'goals') goals.splice(index, 1); if (type === 'insurances') insurances.splice(index, 1); if(type === 'incomes') incomes.splice(index, 1); if(type === 'wants') wants.splice(index, 1); renderAllLists(); updateDashboard(); }); }
         window.analyzeLoan = (index) => {activeAnalysisIndex = index; const loan = loans[index]; document.getElementById('analysisLoanName').textContent = loan.name; document.getElementById('plannedEMI').value = loan.emi; document.getElementById('adhocPayment').value = 0; document.getElementById('detailedAnalysisSection').classList.remove('hidden'); document.getElementById('detailedAnalysisSection').scrollIntoView({ behavior: 'smooth' }); runFullLoanAnalysis(loan);}
         
         document.getElementById('loanForm').addEventListener('submit', (e) => { e.preventDefault(); loans.push({ name: e.target.loanName.value, principal: parseFloat(e.target.principalLeft.value), rate: parseFloat(e.target.interestRate.value), emi: parseFloat(e.target.currentEMI.value), tenure: parseInt(e.target.emisLeft.value) }); e.target.reset(); renderAllLists(); updateDashboard(); });
@@ -440,7 +452,7 @@
 
         // --- CALCULATOR EVENT LISTENERS ---
         document.getElementById('emiCalcForm').addEventListener('submit', e => { e.preventDefault(); const p = parseFloat(document.getElementById('emiLoanAmount').value); const r = parseFloat(document.getElementById('emiInterestRate').value) / 12 / 100; const n = parseFloat(document.getElementById('emiTenure').value) * 12; const emi = p * r * (Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1); const resultEl = document.getElementById('emiResult'); resultEl.innerHTML = `<div class="label">Your Monthly EMI</div><div class="value">${formatCurrency(emi)}</div>`; resultEl.classList.remove('hidden'); });
-        document.getElementById('haForm').addEventListener('submit', e => { e.preventDefault(); const income = parseFloat(document.getElementById('haMonthlyIncome').value); const existingEmi = parseFloat(document.getElementById('haExistingEmi').value); const tenure = parseFloat(document.getElementById('haTenure').value) * 12; const rate = parseFloat(document.getElementById('haInterestRate').value) / 12 / 100; const downPayment = parseFloat(document.getElementById('haDownPayment').value) || 0; const maxEmi = (income * 0.45) - existingEmi; if (maxEmi <= 0) { alert('Your existing EMIs are too high to afford a new home loan.'); return; } const loanAmount = (maxEmi / (rate * Math.pow(1 + rate, tenure))) * (Math.pow(1 + rate, tenure) - 1); const propertyValue = loanAmount + downPayment; const resultEl = document.getElementById('haResult'); resultEl.innerHTML = `<div class="calc-result mb-2"><div class="label">Affordable Home Loan</div><div class="value">${formatLargeCurrency(loanAmount)}</div></div><div class="calc-result"><div class="label">Estimated Property Value</div><div class="value">${formatLargeCurrency(propertyValue)}</div></div>`; resultEl.classList.remove('hidden'); });
+        document.getElementById('haForm').addEventListener('submit', e => { e.preventDefault(); const income = parseFloat(document.getElementById('haMonthlyIncome').value); const existingEmi = parseFloat(document.getElementById('haExistingEmi').value); const tenure = parseFloat(document.getElementById('haTenure').value) * 12; const rate = parseFloat(document.getElementById('haInterestRate').value) / 12 / 100; const downPayment = parseFloat(document.getElementById('haDownPayment').value) || 0; const maxEmi = (income * 0.45) - existingEmi; if (maxEmi <= 0) { showModal("Alert", "Your existing EMIs are too high to afford a new home loan."); return; } const loanAmount = (maxEmi / (rate * Math.pow(1 + rate, tenure))) * (Math.pow(1 + rate, tenure) - 1); const propertyValue = loanAmount + downPayment; const resultEl = document.getElementById('haResult'); resultEl.innerHTML = `<div class="calc-result mb-2"><div class="label">Affordable Home Loan</div><div class="value">${formatLargeCurrency(loanAmount)}</div></div><div class="calc-result"><div class="label">Estimated Property Value</div><div class="value">${formatLargeCurrency(propertyValue)}</div></div>`; resultEl.classList.remove('hidden'); });
         document.getElementById('sipForm').addEventListener('submit', e => { e.preventDefault(); let p = parseFloat(document.getElementById('sipAmount').value); const r = parseFloat(document.getElementById('sipReturnRate').value) / 100; const t = parseFloat(document.getElementById('sipDuration').value); const stepUp = parseFloat(document.getElementById('sipStepUp').value) / 100; let futureValue = 0; let totalInvested = 0; let monthlySip = p; const monthlyRate = r / 12; for (let year = 1; year <= t; year++) { for (let month = 1; month <= 12; month++) { futureValue = futureValue * (1 + monthlyRate) + monthlySip; totalInvested += monthlySip; } monthlySip *= (1 + stepUp); } const wealthGained = futureValue - totalInvested; const resultEl = document.getElementById('sipResult'); resultEl.innerHTML = `<div class="calc-result mb-2"><div class="label">Total Invested</div><div class="value">${formatLargeCurrency(totalInvested)}</div></div><div class="calc-result mb-2"><div class="label">Wealth Gained</div><div class="value">${formatLargeCurrency(wealthGained)}</div></div><div class="calc-result bg-indigo-200"><div class="label">Total Corpus</div><div class="value">${formatLargeCurrency(futureValue)}</div></div>`; resultEl.classList.remove('hidden'); });
 
         // --- AUTHENTICATION LOGIC ---
@@ -448,7 +460,7 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(error => {
                 console.error("Authentication Error:", error);
-                alert("Could not log in. Please try again.");
+                showModal("Login Error", "Could not log in. Please try again.");
             });
         }
 
@@ -484,7 +496,7 @@
         async function saveData() {
             const user = auth.currentUser;
             if (!user) {
-                alert("Please log in to save your data.");
+                showModal("Save Error", "Please log in to save your data.");
                 return;
             }
             const saveDataBtn = document.getElementById('saveDataBtn');
@@ -499,10 +511,10 @@
 
             try {
                 await db.collection("users").doc(user.uid).set(dataToSave);
-                alert("Data saved successfully!");
+                showModal("Success", "Data saved successfully!");
             } catch (error) {
                 console.error("Error saving data: ", error);
-                alert("Could not save data. Please try again.");
+                showModal("Save Error", "Could not save data. Please try again.");
             } finally {
                 saveDataBtn.textContent = "Save Data";
                 saveDataBtn.disabled = false;
@@ -512,7 +524,7 @@
         async function loadData() {
             const user = auth.currentUser;
             if (!user) {
-                alert("Please log in to load your data.");
+                showModal("Load Error", "Please log in to load your data.");
                 return;
             }
              const loadDataBtn = document.getElementById('loadDataBtn');
@@ -525,7 +537,8 @@
                 if (doc.exists) {
                     const data = doc.data();
                     const lastSavedDate = new Date(data.lastSaved).toLocaleString();
-                    if(confirm(`Saved data found from ${lastSavedDate}. Do you want to load it?`)) {
+                    
+                    showConfirmationModal(`Saved data found from ${lastSavedDate}. Do you want to load it?`, () => {
                         currentAgeInput.value = data.currentAge || '';
                         incomes = data.incomes || [];
                         wants = data.wants || [];
@@ -536,14 +549,15 @@
                         
                         renderAllLists();
                         updateDashboard();
-                        alert("Data loaded successfully!");
-                    }
+                        showModal("Success", "Data loaded successfully!");
+                    });
+
                 } else {
-                    alert("No saved data found for your account.");
+                    showModal("Info", "No saved data found for your account.");
                 }
             } catch (error) {
                 console.error("Error loading data: ", error);
-                alert("Could not load data. Please try again.");
+                showModal("Load Error", "Could not load data. Please try again.");
             } finally {
                 loadDataBtn.textContent = "Load Data";
                 loadDataBtn.disabled = false;
@@ -553,17 +567,16 @@
         async function deleteUserData() {
             const user = auth.currentUser;
             if (!user) return;
-
-            if (confirm("Are you sure you want to permanently delete all your saved financial data? This action cannot be undone.")) {
+            showConfirmationModal("Are you sure you want to permanently delete all your saved financial data? This action cannot be undone.", async () => {
                 try {
                     await db.collection("users").doc(user.uid).delete();
-                    alert("Your saved data has been deleted.");
+                    showModal("Success", "Your saved data has been deleted.");
                     resetAllData();
                 } catch (error) {
                     console.error("Error deleting data:", error);
-                    alert("Could not delete your data. Please try again.");
+                    showModal("Error", "Could not delete your data. Please try again.");
                 }
-            }
+            });
         }
 
 
@@ -573,6 +586,42 @@
             renderAllLists();
             updateDashboard();
         }
+
+        // --- MODAL LOGIC ---
+        const modal = document.getElementById('modal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalActions = document.getElementById('modalActions');
+        let confirmCallback = null;
+
+        function showModal(title, content) {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            modalActions.innerHTML = `<button id="modalOkBtn" class="btn btn-primary">OK</button>`;
+            modal.classList.add('active');
+            document.getElementById('modalOkBtn').onclick = () => modal.classList.remove('active');
+        }
+
+        function showConfirmationModal(title, onConfirm) {
+            modalTitle.textContent = "Confirm Action";
+            modalBody.innerHTML = `<p>${title}</p>`;
+            modalActions.innerHTML = `
+                <button id="modalCancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="modalConfirmBtn" class="btn btn-danger">Yes, Delete</button>
+            `;
+            modal.classList.add('active');
+            confirmCallback = onConfirm;
+
+            document.getElementById('modalConfirmBtn').onclick = () => {
+                if(confirmCallback) confirmCallback();
+                modal.classList.remove('active');
+            }
+             document.getElementById('modalCancelBtn').onclick = () => {
+                modal.classList.remove('active');
+            }
+        }
+        closeModalBtn.onclick = () => modal.classList.remove('active');
 
         // --- INITIALIZATION ---
         window.onload = () => {
@@ -608,7 +657,7 @@
                 if (allData.length > 0) {
                     downloadCSV(allData, 'Financial_Inputs.csv');
                 } else {
-                    alert('No inputs to download.');
+                    showModal("Download Error", "No inputs to download.");
                 }
             });
             document.getElementById('downloadLoanExcelBtn').addEventListener('click', () => {
@@ -616,7 +665,7 @@
                     const loanName = loans[activeAnalysisIndex].name.replace(/ /g, '_');
                     downloadCSV(currentAmortizationSchedule, `${loanName}_Amortization.csv`);
                 } else {
-                    alert('No amortization schedule to download. Please analyze a loan first.');
+                    showModal("Download Error", "No amortization schedule to download. Please analyze a loan first.");
                 }
             });
              document.getElementById('downloadLoanPdfBtn').addEventListener('click', () => downloadPDF('downloadLoanPdfBtn', 'Loan'));
@@ -648,19 +697,6 @@
             setupSlider('sipReturnRate', 'sipReturnRateSlider', 'sipReturnRateDisplay');
             setupSlider('sipDuration', 'sipDurationSlider', 'sipDurationDisplay');
             setupSlider('sipStepUp', 'sipStepUpSlider', 'sipStepUpDisplay');
-            
-            // Modal and Helper Icon Logic
-            const modal = document.getElementById('modal');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            function showModal(title, content) {
-                modalTitle.textContent = title;
-                modalBody.innerHTML = content;
-                modal.classList.remove('hidden');
-            }
-            closeModalBtn.onclick = () => modal.classList.add('hidden');
             
             const helpContent = {
                 score: 'This score (0-100) gives a snapshot of your financial health. It is based on your savings rate, debt levels, emergency fund, and insurance coverage.',
