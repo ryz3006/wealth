@@ -166,7 +166,7 @@
                     <div id="report-section-budget-explanation" class="mt-8"><h3 class="pdf-section-header">Understanding Your 50-30-20 Budget</h3><div id="budgetRuleExplanation" class="text-sm text-gray-700 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
                     <div id="report-section-vitals" class="mt-8 relative"><h3 class="pdf-section-header">Cash Flow Summary</h3><span class="helper-icon" data-help="vitals">?</span><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
                     <div id="report-section-suggestions" class="mt-8"><h3 class="pdf-section-header">Suggestions for Improvement</h3><div id="suggestionsContainer"></div></div>
-                    <div id="report-section-wealth" class="mt-8 relative"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><span class="helper-icon" data-help="wealth">?</span><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
+                    <div id="report-section-wealth" class="mt-8 relative"><h3 class="pdf-section-header text-center">Projected Net Worth (25 Yrs)</h3><span class="helper-icon" data-help="wealth">?</span><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
                     <div id="report-section-retirement" class="mt-6 relative"><h3 class="pdf-section-header">Retirement Planner</h3><span class="helper-icon" data-help="retirement">?</span><div id="retirementPlanner" class="space-y-4"></div></div>
                     <div id="report-section-goals" class="mt-6 relative"><h3 class="pdf-section-header">Financial Goals Planner</h3><span class="helper-icon" data-help="goals">?</span><div id="goalPlanner" class="space-y-4"></div></div>
                 </div>
@@ -307,7 +307,7 @@
             let loanBalancesPotential = loans.map(l => l.principal);
             
             const currentYear = new Date().getFullYear();
-            for (let i = 0; i <= 10; i++) { 
+            for (let i = 0; i <= 25; i++) { 
                 projectionCurrent.push(currentAssetsCurrent - loanBalancesCurrent.reduce((a,b) => a+b, 0));
                 projectionPotential.push(currentAssetsPotential - loanBalancesPotential.reduce((a,b) => a+b, 0));
 
@@ -334,7 +334,7 @@
             } 
             
             const wealthData = {
-                labels: Array.from({length: 11}, (_, i) => `${currentYear + i}`), 
+                labels: Array.from({length: 26}, (_, i) => `${currentYear + i}`), 
                 datasets: [
                     { label: 'Projected Net Worth (Current Investments)', data: projectionCurrent, borderColor: '#3b82f6', tension: 0.1, fill: false, borderWidth: 3 },
                     { label: 'Potential Net Worth (with Extra Savings)', data: projectionPotential, borderColor: '#22c55e', tension: 0.1, fill: false, borderDash: [5, 5], borderWidth: 2 }
