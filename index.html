@@ -164,11 +164,11 @@
                         <div class="lg:col-span-1 flex flex-col items-center justify-center p-4 rounded-lg bg-gray-50"><h3 class="pdf-section-header w-full text-center">Debt-to-Income Ratio</h3><div id="dtiRatioGauge" class="text-4xl font-bold">0%</div></div>
                     </div>
                     <div id="report-section-budget-explanation" class="mt-8"><h3 class="pdf-section-header">Understanding Your 50-30-20 Budget</h3><div id="budgetRuleExplanation" class="text-sm text-gray-700 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
-                    <div id="report-section-vitals" class="mt-8"><h3 class="pdf-section-header">Cash Flow Summary</h3><span class="helper-icon" data-help="vitals">?</span><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
+                    <div id="report-section-vitals" class="mt-8 relative"><h3 class="pdf-section-header">Cash Flow Summary</h3><span class="helper-icon" data-help="vitals">?</span><div id="financialVitalsContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
                     <div id="report-section-suggestions" class="mt-8"><h3 class="pdf-section-header">Suggestions for Improvement</h3><div id="suggestionsContainer"></div></div>
-                    <div id="report-section-wealth" class="mt-8"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><span class="helper-icon" data-help="wealth">?</span><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
-                    <div id="report-section-retirement" class="mt-6"><h3 class="pdf-section-header">Retirement Planner</h3><span class="helper-icon" data-help="retirement">?</span><div id="retirementPlanner" class="space-y-4"></div></div>
-                    <div id="report-section-goals" class="mt-6"><h3 class="pdf-section-header">Financial Goals Planner</h3><span class="helper-icon" data-help="goals">?</span><div id="goalPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-wealth" class="mt-8 relative"><h3 class="pdf-section-header text-center">Projected Net Worth (10 Yrs)</h3><span class="helper-icon" data-help="wealth">?</span><div class="p-4 rounded-lg bg-gray-50 h-96"><canvas id="wealthGrowthChart"></canvas></div><div id="wealthGrowthExplanation" class="text-sm text-gray-600 mt-2 p-4 bg-gray-50 rounded-lg"></div></div>
+                    <div id="report-section-retirement" class="mt-6 relative"><h3 class="pdf-section-header">Retirement Planner</h3><span class="helper-icon" data-help="retirement">?</span><div id="retirementPlanner" class="space-y-4"></div></div>
+                    <div id="report-section-goals" class="mt-6 relative"><h3 class="pdf-section-header">Financial Goals Planner</h3><span class="helper-icon" data-help="goals">?</span><div id="goalPlanner" class="space-y-4"></div></div>
                 </div>
                 <div id="noDataOverlay" class="no-data-overlay absolute inset-0 bg-white/80 backdrop-blur-sm items-center justify-center text-center">
                     <div><h3 class="text-2xl font-bold text-gray-700">No Data Available</h3><p class="text-gray-600 mt-2">Go to 'Financial Inputs' and add your income to generate the dashboard.</p></div>
@@ -299,22 +299,44 @@
             const weightedAvgReturn = totalAssets > 0 ? assets.reduce((sum, a) => sum + a.value * (a.returnRate / 100), 0) / totalAssets : 0.05; 
             
             let projectionCurrent = []; 
-            let currentWealthCurrent = netWorth;
+            let currentAssetsCurrent = totalAssets;
+            let loanBalancesCurrent = loans.map(l => l.principal);
+
             let projectionPotential = []; 
-            let currentWealthPotential = netWorth;
+            let currentAssetsPotential = totalAssets;
+            let loanBalancesPotential = loans.map(l => l.principal);
             
             const currentYear = new Date().getFullYear();
             for (let i = 0; i <= 10; i++) { 
-                projectionCurrent.push(currentWealthCurrent);
-                projectionPotential.push(currentWealthPotential);
-                currentWealthCurrent = currentWealthCurrent * (1 + weightedAvgReturn) + (totalMonthlySips * 12);
-                currentWealthPotential = currentWealthPotential * (1 + weightedAvgReturn) + ((totalMonthlySips + potentialExtraSavings) * 12);
+                projectionCurrent.push(currentAssetsCurrent - loanBalancesCurrent.reduce((a,b) => a+b, 0));
+                projectionPotential.push(currentAssetsPotential - loanBalancesPotential.reduce((a,b) => a+b, 0));
+
+                // Grow assets
+                currentAssetsCurrent = currentAssetsCurrent * (1 + weightedAvgReturn) + (totalMonthlySips * 12);
+                currentAssetsPotential = currentAssetsPotential * (1 + weightedAvgReturn) + ((totalMonthlySips + potentialExtraSavings) * 12);
+
+                // Reduce liabilities
+                loanBalancesCurrent = loanBalancesCurrent.map((p, index) => {
+                    if (p <= 0) return 0;
+                    const loan = loans[index];
+                    const monthlyRate = loan.rate / 12 / 100;
+                    let balance = p;
+                    for (let m = 0; m < 12; m++) {
+                        if (balance > 0) {
+                            const interest = balance * monthlyRate;
+                            const principalPayment = loan.emi - interest;
+                            balance -= principalPayment;
+                        }
+                    }
+                    return balance > 0 ? balance : 0;
+                });
+                loanBalancesPotential = [...loanBalancesCurrent];
             } 
             
             const wealthData = {
                 labels: Array.from({length: 11}, (_, i) => `${currentYear + i}`), 
                 datasets: [
-                    { label: 'Projected Net Worth (with Current Investments)', data: projectionCurrent, borderColor: '#3b82f6', tension: 0.1, fill: false, borderWidth: 3 },
+                    { label: 'Projected Net Worth (Current Investments)', data: projectionCurrent, borderColor: '#3b82f6', tension: 0.1, fill: false, borderWidth: 3 },
                     { label: 'Potential Net Worth (with Extra Savings)', data: projectionPotential, borderColor: '#22c55e', tension: 0.1, fill: false, borderDash: [5, 5], borderWidth: 2 }
                 ]
             }; 
@@ -325,12 +347,12 @@
             renderInputsForPDF();
             renderSuggestions({emergencyFundRatio, liquidAssets, monthlyExpenses, yearlyIncome: totalMonthlyIncome * 12});
             renderWealthGrowthExplanation({netWorth, totalMonthlySips, potentialExtraSavings, weightedAvgReturn});
-            renderBudgetRuleExplanation({ needsPercent: (monthlyNeeds / totalMonthlyIncome) * 100, wantsPercent: (totalMonthlyWants / totalMonthlyIncome) * 100, savingsPercent: (totalMonthlySips / totalMonthlyIncome) * 100, unallocatedPercent: (potentialExtraSavings / totalMonthlyIncome) * 100 });
+            renderBudgetRuleExplanation({ needsPercent: (monthlyNeeds / totalMonthlyIncome) * 100, wantsPercent: (totalMonthlyWants / totalMonthlyIncome) * 100, savingsPercent: totalMonthlySips / totalMonthlyIncome * 100, unallocatedPercent: potentialExtraSavings / totalMonthlyIncome * 100 });
         }
         
         function renderFinancialVitals({ totalMonthlyIncome, totalMonthlySips, totalEMI, potentialExtraSavings }) { const container = document.getElementById('financialVitalsContainer'); container.innerHTML = `<div class="vitals-card"><div class="label">Total Monthly Income</div><div class="value text-green-600">${formatCurrency(totalMonthlyIncome)}</div></div><div class="vitals-card"><div class="label">Total Monthly Investments</div><div class="value text-blue-600">${formatCurrency(totalMonthlySips)}</div></div><div class="vitals-card"><div class="label">Total Monthly EMI</div><div class="value text-red-600">${formatCurrency(totalEMI)}</div></div><div class="vitals-card"><div class="label">Potential Extra Savings</div><div class="value text-yellow-500">${formatCurrency(potentialExtraSavings)}</div></div>`; }
         function renderSuggestions({emergencyFundRatio, liquidAssets, monthlyExpenses, yearlyIncome}) { const container = document.getElementById('suggestionsContainer'); let html = ''; if (emergencyFundRatio < 1) { const targetFund = monthlyExpenses * 6; html += `<div class="suggestion-card"><strong>Emergency Fund Alert:</strong> Your fund is at ${formatCurrency(liquidAssets)}. It is recommended to have at least 6 months of expenses (${formatCurrency(targetFund)}) for financial security.</div>`; } if (!insurances.some(i => i.type === 'Health')) { html += `<div class="suggestion-card"><strong>Health Insurance Gap:</strong> A health insurance policy is crucial to protect your savings from unexpected medical emergencies. Consider getting a family floater plan.</div>`; } if (!insurances.some(i => i.type === 'Term')) { const targetCover = yearlyIncome * 15; html += `<div class="suggestion-card"><strong>Term Insurance Recommended:</strong> To protect your family's future, a term plan of at least 10-15 times your annual income (${formatLargeCurrency(targetCover)}) is advisable.</div>`; } if(html === '') { html = '<p class="text-center text-gray-600">You are on the right track with your core financial safety net. Keep it up!</p>'; } container.innerHTML = html; }
-        function renderWealthGrowthExplanation({netWorth, totalMonthlySips, potentialExtraSavings, weightedAvgReturn}) { const container = document.getElementById('wealthGrowthExplanation'); container.innerHTML = `This projection starts with your current Net Worth of <strong>${formatLargeCurrency(netWorth)}</strong>. Each year, it grows based on an estimated <strong>${(weightedAvgReturn * 100).toFixed(1)}%</strong> average annual return and your annual contributions of <strong>${formatLargeCurrency(totalMonthlySips * 12)}</strong> (solid line). The dotted line shows your potential growth if you also invest your extra savings of <strong>${formatCurrency(potentialExtraSavings)}</strong> each month.`; }
+        function renderWealthGrowthExplanation({netWorth, totalMonthlySips, potentialExtraSavings, weightedAvgReturn}) { const container = document.getElementById('wealthGrowthExplanation'); container.innerHTML = `This projection starts with your current Net Worth of <strong>${formatLargeCurrency(netWorth)}</strong>. Each year, it grows based on an estimated <strong>${(weightedAvgReturn * 100).toFixed(1)}%</strong> average annual return and your annual contributions. The <strong>solid blue line</strong> shows growth with your current investments of <strong>${formatCurrency(totalMonthlySips)}/mo</strong>. The <strong>dotted green line</strong> shows potential growth if you also invest your unallocated savings of <strong>${formatCurrency(potentialExtraSavings)}/mo</strong>.`; }
         function renderGoalPlanner() { const goalPlannerEl = document.getElementById('goalPlanner'); if (goals.length === 0) { goalPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Add goals in 'Financial Inputs' to see your plan.</p>`; return; } goalPlannerEl.innerHTML = goals.map(g => { const monthlyInvRate = (g.expectedReturn / 100) / 12; const n = g.years * 12; if(monthlyInvRate <= 0) return `<div class="p-3 bg-gray-50 rounded-lg"><span class="font-semibold text-center">Cannot calculate SIP for ${g.name} without a positive return.</span></div>`; const requiredSip = g.amount * (monthlyInvRate / (Math.pow(1 + monthlyInvRate, n) - 1)); return `<div class="p-3 bg-gray-50 rounded-lg grid grid-cols-1 sm:grid-cols-3 items-center text-center sm:text-left"><span class="font-semibold">${g.name}</span><span>Target: ${formatLargeCurrency(g.amount)} in ${g.years} yrs</span><span class="sm:text-right font-bold text-blue-600">Req. SIP: ${formatCurrency(requiredSip)}/mo @ ${g.expectedReturn}%</span></div>`; }).join(''); }
         function renderRetirementPlanner(weightedAvgReturn) { const retirementPlannerEl = document.getElementById('retirementPlanner'); const currentAge = parseInt(currentAgeInput.value) || 0; const retirementAge = 60; if (currentAge === 0) { retirementPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Enter your current age in 'Financial Inputs' for a retirement plan.</p>`; return; } const yearsToRetire = retirementAge - currentAge; if (yearsToRetire <= 0) { retirementPlannerEl.innerHTML = `<p class="text-gray-500 text-center">Retirement age reached or passed.</p>`; return; } const yearlyExpenses = wants.reduce((sum, w) => sum + w.amount, 0) * 12; const targetCorpus = yearlyExpenses / 0.04; const monthlyInvRate = (weightedAvgReturn || 0.08) / 12; const n = yearsToRetire * 12; const currentNetWorth = assets.reduce((sum, a) => sum + a.value, 0) - loans.reduce((sum, l) => sum + l.principal, 0); const fvOfCurrent = currentNetWorth * Math.pow(1 + monthlyInvRate, n); const totalMonthlySavings = incomes.reduce((sum, i) => sum + i.amount, 0) - (loans.reduce((sum, l) => sum + l.emi, 0) + insurances.reduce((sum, i) => sum + (i.premiumFrequency === 'monthly' ? i.premiumAmount : i.premiumAmount / 12), 0)) - wants.reduce((sum, w) => sum + w.amount, 0); const fvOfSips = totalMonthlySavings * ((Math.pow(1 + monthlyInvRate, n) - 1) / monthlyInvRate); const totalFutureValue = fvOfCurrent + fvOfSips; const shortfall = targetCorpus - totalFutureValue; retirementPlannerEl.innerHTML = `<div class="p-3 bg-blue-50 rounded-lg grid grid-cols-1 sm:grid-cols-3 items-center text-center sm:text-left"><span class="font-semibold">Retirement at ${retirementAge}</span><span>Target Corpus: ${formatLargeCurrency(targetCorpus)}</span>${shortfall > 0 ? `<span class="sm:text-right font-bold text-red-600">Shortfall: ${formatLargeCurrency(shortfall)}</span>` : `<span class="sm:text-right font-bold text-green-600">On Track!</span>`}</div>`; }
         function renderBudgetRuleExplanation({ needsPercent, wantsPercent, savingsPercent, totalMonthlyIncome }) { const container = document.getElementById('budgetRuleExplanation'); let html = `<p class="mb-2">The <strong>50-30-20 rule</strong> is a simple budgeting guideline: allocate <strong>50%</strong> of your income to Needs (essentials like EMIs, premiums), <strong>30%</strong> to Wants (lifestyle spending), and <strong>20%</strong> to Savings & Investments.</p>`; html += `<p class="mb-2"><strong>Your current breakdown is:</strong></p><ul class="list-disc list-inside mb-4"><li><strong>Needs:</strong> ${needsPercent.toFixed(1)}%</li><li><strong>Wants:</strong> ${wantsPercent.toFixed(1)}%</li><li><strong>Savings:</strong> ${savingsPercent.toFixed(1)}%</li></ul><h4 class="font-semibold mb-2">How to align with the rule:</h4>`; if (savingsPercent < 20) { html += `<div class="suggestion-card">Your savings rate of ${savingsPercent.toFixed(1)}% is below the recommended 20%. Try to increase this by reducing 'Wants' or optimizing 'Needs'. Every extra rupee saved accelerates your wealth growth.</div>`; } if (wantsPercent > 30) { const excess = (wantsPercent - 30) / 100 * totalMonthlyIncome; html += `<div class="suggestion-card">Your spending on 'Wants' is at ${wantsPercent.toFixed(1)}%. Consider reducing this by about <strong>${formatCurrency(excess)}/month</strong> to meet the 30% target and boost your savings.</div>`; } if (needsPercent > 50) { html += `<div class="suggestion-card">Your 'Needs' are at ${needsPercent.toFixed(1)}%. While often fixed, see if high-interest loans can be refinanced or if insurance premiums can be optimized (e.g., paying annually).</div>`; } if (savingsPercent >= 20 && wantsPercent <= 30 && needsPercent <= 50) { html += `<div class="suggestion-card bg-green-100 border-green-500"><strong>Excellent!</strong> Your budget aligns well with the 50-30-20 rule. You are doing a great job managing your cash flow.</div>`; } container.innerHTML = html; }
