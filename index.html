@@ -193,31 +193,7 @@
         function renderDtiGauge(dti) { const gaugeEl = document.getElementById('dtiRatioGauge'); const color = dti > 50 ? '#ef4444' : dti > 40 ? '#f59e0b' : '#22c55e'; gaugeEl.textContent = `${dti.toFixed(1)}%`; gaugeEl.style.color = color; }
 
         // --- EXCEL/CSV DOWNLOAD FUNCTION ---
-        function downloadCSV(data, filename) {
-            if (!data || data.length === 0) { alert('No data to download.'); return; }
-            const allHeaders = new Set();
-            data.forEach(row => { Object.keys(row).forEach(key => allHeaders.add(key)); });
-            const headers = Array.from(allHeaders);
-            const csvRows = [headers.join(',')];
-            for (const row of data) {
-                const values = headers.map(header => {
-                    const value = row[header] === undefined || row[header] === null ? '' : row[header];
-                    const escaped = ('' + value).replace(/"/g, '""');
-                    return `"${escaped}"`;
-                });
-                csvRows.push(values.join(','));
-            }
-            const csvString = csvRows.join('\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        function downloadCSV(data, filename) { if (!data || data.length === 0) { alert('No data to download.'); return; } const allHeaders = new Set(); data.forEach(row => { Object.keys(row).forEach(key => allHeaders.add(key)); }); const headers = Array.from(allHeaders); const csvRows = [headers.join(',')]; for (const row of data) { const values = headers.map(header => { const value = row[header] === undefined || row[header] === null ? '' : row[header]; const escaped = ('' + value).replace(/"/g, '""'); return `"${escaped}"`; }); csvRows.push(values.join(',')); } const csvString = csvRows.join('\n'); const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); const url = URL.createObjectURL(blob); link.setAttribute('href', url); link.setAttribute('download', filename); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
         // --- PDF DOWNLOAD FUNCTIONS ---
         async function downloadPDF(buttonId, type) {
@@ -237,7 +213,13 @@
                 
                 for (const element of elementsToProcess) {
                     if (!element) continue;
-                    const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+                    const wasHidden = element.classList.contains('hidden');
+                    if (wasHidden) element.classList.remove('hidden');
+                    
+                    const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+                    
+                    if (wasHidden) element.classList.add('hidden');
+
                     const imgData = canvas.toDataURL('image/jpeg', 0.95); const imgProps = pdf.getImageProperties(imgData); const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
                     if (yPos + imgHeight > pdf.internal.pageSize.getHeight() - page_margin) { pdf.addPage(); yPos = page_margin; }
                     pdf.addImage(imgData, 'JPEG', page_margin, yPos, pdfWidth, imgHeight, undefined, 'MEDIUM'); yPos += imgHeight + 10; 
