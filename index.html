@@ -43,6 +43,9 @@
         .vitals-card { background-color: #f9fafb; padding: 1rem; border-radius: 0.5rem; text-align: center; }
         .vitals-card .label { font-size: 0.875rem; color: #6b7280; }
         .vitals-card .value { font-size: 1.25rem; font-weight: 700; }
+        .calc-result { padding: 1rem; background-color: #eef2ff; border-radius: 0.5rem; text-align: center; margin-top: 1rem;}
+        .calc-result .label { font-size: 1rem; color: #4338ca; }
+        .calc-result .value { font-size: 2rem; font-weight: 700; color: #312e81; }
     </style>
 </head>
 <body class="p-4 sm:p-6 lg:p-8">
@@ -58,6 +61,7 @@
             <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
             <button class="nav-tab" onclick="showTab('inputs')">Financial Inputs</button>
             <button class="nav-tab" onclick="showTab('loans')">Loan Planner</button>
+            <button class="nav-tab" onclick="showTab('calculators')">Calculators</button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -95,6 +99,19 @@
         
         <!-- Loans Tab -->
         <div id="loansTab" class="hidden pt-4"><div class="grid grid-cols-1 lg:grid-cols-5 gap-8"><div class="lg:col-span-2"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Add a New Loan</h2><form id="loanForm"><div class="input-group"><label for="loanName">Loan Name</label><input type="text" id="loanName" placeholder="e.g., Home Loan" required></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div class="input-group"><label for="principalLeft">Principal Left</label><input type="number" id="principalLeft" placeholder="e.g., 2500000" required></div><div class="input-group"><label for="interestRate">Interest Rate (%)</label><input type="number" step="0.01" id="interestRate" placeholder="e.g., 8.5" required></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div class="input-group"><label for="currentEMI">Contractual EMI</label><input type="number" id="currentEMI" placeholder="e.g., 25000" required></div><div class="input-group"><label for="emisLeft">EMIs Left</label><input type="number" id="emisLeft" placeholder="e.g., 240" required></div></div><button type="submit" class="btn btn-primary w-full">Add Loan</button></form></div></div><div class="lg:col-span-3"><div class="card"><h2 class="text-xl font-bold text-gray-700 mb-4">Your Loan Portfolio</h2><div id="loanList" class="space-y-3"></div></div></div></div><div id="detailedAnalysisSection" class="card hidden"><div id="loanReportContent"><div class="flex justify-between items-start mb-4"><h2 class="text-2xl font-bold text-gray-800">Loan Analysis for <span id="analysisLoanName" class="text-blue-600"></span></h2><button id="downloadLoanExcelBtn" class="btn btn-primary">Download Amortization as Excel</button></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"><div class="input-group"><label for="plannedEMI">Your Planned EMI</label><input type="number" id="plannedEMI"></div><div class="input-group"><label for="adhocPayment">Adhoc Bulk Payment (This Month)</label><input type="number" id="adhocPayment" value="0"></div><div class="flex items-end pb-4"><button id="recalculateBtn" class="btn btn-secondary w-full">Recalculate Projections</button></div></div><div id="report-loan-summary"> <div class="bg-gray-50 p-4 rounded-lg mb-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Repayment Projections</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"><div><p class="text-sm text-gray-500">Projected Finish Time</p><p id="projectedMonths" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Projected Total Interest</p><p id="projectedInterest" class="text-xl font-bold text-blue-600">-</p></div><div><p class="text-sm text-gray-500">Original Total Interest</p><p id="originalInterest" class="text-xl font-bold text-gray-600">-</p></div></div></div><div class="grid grid-cols-1 xl:grid-cols-2 gap-8"><div><h3 class="text-lg font-semibold text-gray-700 mb-4">Prepayment Scenarios (Interest Saved)</h3><table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-3 font-semibold text-sm">EMI Increase</th><th class="p-3 font-semibold text-sm">New EMI</th><th class="p-3 font-semibold text-sm">Total Interest Paid</th><th class="p-3 font-semibold text-sm text-green-600">Interest Saved</th></tr></thead><tbody id="interestReductionTable"></tbody></table></div><div id="amortization-section-container"> <h3 class="text-lg font-semibold text-gray-700 mb-4">Amortization Schedule</h3><div class="h-96 overflow-y-auto border rounded-lg"><table class="w-full text-left text-sm"><thead class="bg-gray-100 sticky top-0"><tr><th class="p-2 font-semibold">Month</th><th class="p-2 font-semibold">Opening</th><th class="p-2 font-semibold">Interest</th><th class="p-2 font-semibold">Principal</th><th class="p-2 font-semibold">Closing</th></tr></thead><tbody id="amortizationTableBody"></tbody></table></div></div></div></div></div></div></div>
+
+        <!-- Calculators Tab -->
+        <div id="calculatorsTab" class="hidden pt-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- EMI Calculator -->
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">EMI Calculator</h3><form id="emiCalcForm"><div class="input-group"><label for="emiLoanAmount">Loan Amount</label><input type="number" id="emiLoanAmount" required></div><div class="input-group"><label for="emiInterestRate">Interest Rate (%)</label><input type="number" id="emiInterestRate" step="0.01" required></div><div class="input-group"><label for="emiTenure">Tenure (Years)</label><input type="number" id="emiTenure" required></div><button type="submit" class="btn btn-primary w-full">Calculate EMI</button></form><div id="emiResult" class="calc-result hidden"></div></div>
+                <!-- Home Affordability -->
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Home Affordability Calculator</h3><form id="haForm"><div class="input-group"><label for="haMonthlyIncome">Gross Monthly Income</label><input type="number" id="haMonthlyIncome" required></div><div class="input-group"><label for="haExistingEmi">Total Existing EMIs</label><input type="number" id="haExistingEmi" value="0" required></div><div class="input-group"><label for="haTenure">Desired Loan Tenure (Years)</label><input type="number" id="haTenure" value="20" required></div><div class="input-group"><label for="haInterestRate">Assumed Interest Rate (%)</label><input type="number" step="0.01" id="haInterestRate" value="8.5" required></div><button type="submit" class="btn btn-primary w-full">Calculate Affordability</button></form><div id="haResult" class="hidden mt-4"></div></div>
+                <!-- Investment Simulator -->
+                <div class="card"><h3 class="text-xl font-bold text-gray-700 mb-4">Investment Scenario Simulator</h3><form id="sipForm"><div class="input-group"><label for="sipAmount">Monthly Investment (SIP)</label><input type="number" id="sipAmount" required></div><div class="input-group"><label for="sipReturnRate">Expected Annual Return (%)</label><input type="number" id="sipReturnRate" step="0.1" required></div><div class="input-group"><label for="sipDuration">Investment Duration (Years)</label><input type="number" id="sipDuration" required></div><button type="submit" class="btn btn-primary w-full">Simulate Growth</button></form><div id="sipResult" class="hidden mt-4"></div></div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -112,6 +129,7 @@
             document.getElementById('dashboardTab').classList.toggle('hidden', tabName !== 'dashboard');
             document.getElementById('inputsTab').classList.toggle('hidden', tabName !== 'inputs');
             document.getElementById('loansTab').classList.toggle('hidden', tabName !== 'loans');
+            document.getElementById('calculatorsTab').classList.toggle('hidden', tabName !== 'calculators');
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelector(`.nav-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
         }
@@ -248,6 +266,61 @@
         currentAgeInput.addEventListener('input', updateDashboard);
         document.getElementById('recalculateBtn').addEventListener('click', () => {if (activeAnalysisIndex !== -1) {runFullLoanAnalysis(loans[activeAnalysisIndex]);}});
         document.getElementById('refreshDashboardBtn').addEventListener('click', updateDashboard);
+
+        // --- CALCULATOR EVENT LISTENERS ---
+        document.getElementById('emiCalcForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const p = parseFloat(document.getElementById('emiLoanAmount').value);
+            const r = parseFloat(document.getElementById('emiInterestRate').value) / 12 / 100;
+            const n = parseFloat(document.getElementById('emiTenure').value) * 12;
+            const emi = p * r * (Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            const resultEl = document.getElementById('emiResult');
+            resultEl.innerHTML = `<div class="label">Your Monthly EMI</div><div class="value">${formatCurrency(emi)}</div>`;
+            resultEl.classList.remove('hidden');
+        });
+        document.getElementById('haForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const income = parseFloat(document.getElementById('haMonthlyIncome').value);
+            const existingEmi = parseFloat(document.getElementById('haExistingEmi').value);
+            const tenure = parseFloat(document.getElementById('haTenure').value) * 12;
+            const rate = parseFloat(document.getElementById('haInterestRate').value) / 12 / 100;
+
+            const maxEmi = (income * 0.45) - existingEmi; // Cap at 45% DTI
+            if (maxEmi <= 0) {
+                 alert('Your existing EMIs are too high to afford a new home loan.');
+                 return;
+            }
+            const loanAmount = (maxEmi / (rate * Math.pow(1 + rate, tenure))) * (Math.pow(1 + rate, tenure) - 1);
+            const propertyValue = loanAmount / 0.8; // Assuming 80% LTV
+
+            const resultEl = document.getElementById('haResult');
+            resultEl.innerHTML = `
+                <div class="calc-result mb-2"><div class="label">Affordable Home Loan</div><div class="value">${formatLargeCurrency(loanAmount)}</div></div>
+                <div class="calc-result"><div class="label">Estimated Property Value</div><div class="value">${formatLargeCurrency(propertyValue)}</div></div>
+            `;
+            resultEl.classList.remove('hidden');
+        });
+        document.getElementById('sipForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const p = parseFloat(document.getElementById('sipAmount').value);
+            const r = parseFloat(document.getElementById('sipReturnRate').value) / 100;
+            const t = parseFloat(document.getElementById('sipDuration').value);
+            const n = 12; // Compounded monthly
+
+            const i = r / n;
+            const N = n * t;
+            const futureValue = p * ((Math.pow(1 + i, N) - 1) / i) * (1 + i);
+            const totalInvested = p * N;
+            const wealthGained = futureValue - totalInvested;
+            
+            const resultEl = document.getElementById('sipResult');
+            resultEl.innerHTML = `
+                 <div class="calc-result mb-2"><div class="label">Total Invested</div><div class="value">${formatLargeCurrency(totalInvested)}</div></div>
+                 <div class="calc-result mb-2"><div class="label">Wealth Gained</div><div class="value">${formatLargeCurrency(wealthGained)}</div></div>
+                 <div class="calc-result bg-indigo-200"><div class="label">Total Corpus</div><div class="value">${formatLargeCurrency(futureValue)}</div></div>
+            `;
+             resultEl.classList.remove('hidden');
+        });
 
         // --- INITIALIZATION ---
         window.onload = () => {
