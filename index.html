@@ -58,6 +58,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
+            padding-top: 64px; /* Added padding to prevent content from being hidden behind the fixed top bar */
         }
         .card {
             background-color: white;
@@ -94,19 +95,21 @@
 </head>
 <body class="p-4 sm:p-6 lg:p-8">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-4 text-center">
-             <div class="flex justify-between items-center">
-                <div></div> <!-- Spacer -->
-                <h1 class="text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
-                <div id="auth-container">
-                    <button id="loginBtn" class="btn btn-primary">Login with Google</button>
-                    <div id="user-info" class="hidden items-center space-x-3">
-                        <span id="userName" class="text-sm font-medium text-gray-700"></span>
-                        <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">Logout</button>
-                    </div>
+    <div id="top-bar" class="fixed top-0 left-0 right-0 bg-white shadow-md p-2 z-50">
+        <div class="max-w-7xl mx-auto flex justify-end items-center">
+            <div id="auth-container">
+                <button id="loginBtn" class="btn btn-primary text-sm py-2 px-3">Login with Google</button>
+                <div id="user-info" class="hidden items-center space-x-3">
+                    <span id="userName" class="text-sm font-medium text-gray-700"></span>
+                    <button id="logoutBtn" class="btn btn-secondary text-sm py-2 px-3">Logout</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <header class="my-8 text-center">
+             <h1 class="text-4xl font-bold text-gray-800">Comprehensive Wealth Planner</h1>
             <p class="text-lg text-gray-600 mt-2">Your all-in-one dashboard for financial health, analysis, and growth.</p>
         </header>
 
@@ -377,8 +380,6 @@
                 userNameEl.textContent = '';
                 saveDataBtn.classList.add('hidden');
                 loadDataBtn.classList.add('hidden');
-                // Optional: Clear data on logout
-                // resetAllData();
             }
         }
         
@@ -463,6 +464,11 @@
             
             auth.onAuthStateChanged(user => {
                 updateUIForUser(user);
+                 if (user) { // Automatically load data on login
+                    loadData();
+                } else {
+                    resetAllData();
+                }
             });
 
             document.getElementById('loginBtn').addEventListener('click', handleLogin);
